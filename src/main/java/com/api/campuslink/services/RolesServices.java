@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.api.campuslink.dao.RoleRepository;
@@ -17,11 +18,11 @@ public class RolesServices {
     @Autowired
     RoleRepository roleRepository;
 
-    public Result<List<Role>> getAllRoles() {
-        List<Role> roleList = new ArrayList<Role>();
-
+    public Result<List<Role>> getAllRoles(String sortBy, boolean ascending) {
         try {
-            roleList = roleRepository.findAll();
+            List<Role> roleList = new ArrayList<Role>();
+            Sort sort = ascending ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+            roleList = roleRepository.findAll(sort);
             return Result.success(roleList);
         } catch (Exception e) {
             e.printStackTrace();

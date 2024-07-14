@@ -15,20 +15,40 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.api.campuslink.entities.Role;
+import com.api.campuslink.entities.Course;
 import com.api.campuslink.helpers.Result;
-import com.api.campuslink.services.RolesServices;
+import com.api.campuslink.services.CourseServices;
 
 @RestController
-public class RolesController {
+public class CourseController {
 
     @Autowired
-    RolesServices rolesServices;
+    CourseServices courseServices;
 
-    @GetMapping("/roles")
-    public ResponseEntity<?> getRoles(@RequestParam(defaultValue = "id") String sortBy,
+    @PostMapping("/add/course")
+    public ResponseEntity<?> createCourse(@RequestBody Course req) {
+
+        Course course = new Course(
+                req.getId(),
+                req.getCourseName(),
+                req.getCourseCode(),
+                req.getDescription());
+
+        Result<Course> response = this.courseServices.insertCourse(course);
+
+        if (!response.isSuccess()) {
+            return new ResponseEntity<>("Unable to save due to " + response.getError(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        return new ResponseEntity<>("Course saved successfully with id " + response.getData().getId(),
+                HttpStatus.OK);
+    }
+
+    @GetMapping("/courses")
+    public ResponseEntity<?> getCourses(@RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "true") boolean asc) {
-        Result<List<Role>> response = this.rolesServices.getAllRoles(sortBy, asc);
+        Result<List<Course>> response = this.courseServices.fetchAllCourses(sortBy, asc);
 
         if (!response.isSuccess()) {
             return new ResponseEntity<>(response.getError(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -41,9 +61,9 @@ public class RolesController {
         return new ResponseEntity<>(response.getData(), HttpStatus.OK);
     }
 
-    @GetMapping("/role")
-    public ResponseEntity<?> getRole(@RequestParam int id) {
-        Result<Role> response = this.rolesServices.getRoleById(id);
+    @GetMapping("/course")
+    public ResponseEntity<?> getCourse(@RequestParam int id) {
+        Result<Course> response = this.courseServices.fetchCourseById(id);
 
         if (!response.isSuccess()) {
             return new ResponseEntity<>(response.getError(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -52,36 +72,17 @@ public class RolesController {
         if (response.getData() == null) {
             return new ResponseEntity<>("No data available for the given id", HttpStatus.NOT_FOUND);
         }
+
         return new ResponseEntity<>(response.getData(), HttpStatus.OK);
     }
 
-    @PostMapping("/add/role")
-    public ResponseEntity<?> createRole(@RequestBody Role req) {
-        Role role = new Role(
-                req.getId(),
-                req.getName(),
-                req.getRoleCode(),
-                req.getDescription());
+    @PutMapping("/update/course")
+    public ResponseEntity<?> updateCourse(@RequestBody Course req) {
 
-        Result<Role> response = this.rolesServices.insertNewRole(role);
+        Result<Course> response = this.courseServices.updateCourse(req);
 
         if (response.isSuccess()) {
-            return new ResponseEntity<>("Role saved successfully with id " + response.getData().getId(),
-                    HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>("Unable to save due to " + response.getError(),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-    }
-
-    @PutMapping("/update/role")
-    public ResponseEntity<?> updateRole(@RequestBody Role req) {
-
-        Result<Role> response = this.rolesServices.updateRole(req);
-
-        if (response.isSuccess()) {
-            return new ResponseEntity<>("Role updated successfully for id " + response.getData().getId(),
+            return new ResponseEntity<>("Course updated successfully for id " + response.getData().getId(),
                     HttpStatus.OK);
         } else {
             return new ResponseEntity<>("Unable to update due to " + response.getError(),
@@ -89,28 +90,28 @@ public class RolesController {
         }
     }
 
-    @DeleteMapping("/remove/role")
-    public ResponseEntity<?> removeRole(@RequestParam int id) {
-
-        Result<Role> response = this.rolesServices.deleteRole(id);
+    @DeleteMapping("/remove/course")
+    public ResponseEntity<?> removeCourse(@RequestParam int id) {
+        Result<Course> response = this.courseServices.deleteCourse(id);
 
         if (response.isSuccess()) {
-            return new ResponseEntity<>("Role removed successfully", HttpStatus.OK);
+            return new ResponseEntity<>("Course removed successfully", HttpStatus.OK);
         } else {
             return new ResponseEntity<>("Unable to remove due to " + response.getError(),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @DeleteMapping("/remove/roles")
-    public ResponseEntity<?> removeRoles(@RequestParam String ids) {
+    @DeleteMapping("/remove/courses")
+    public ResponseEntity<?> removeCourses(@RequestParam String ids) {
         List<Integer> idList = Arrays.stream(ids.split(","))
                 .map(Integer::parseInt)
                 .collect(Collectors.toList());
-        Result<Role> response = this.rolesServices.deleteRoles(idList);
+
+        Result<Course> response = this.courseServices.deleteCourses(idList);
 
         if (response.isSuccess()) {
-            return new ResponseEntity<>("Roles removed successfully", HttpStatus.OK);
+            return new ResponseEntity<>("Courses removed successfully", HttpStatus.OK);
         } else {
             return new ResponseEntity<>("Unable to remove due to " + response.getError(),
                     HttpStatus.INTERNAL_SERVER_ERROR);

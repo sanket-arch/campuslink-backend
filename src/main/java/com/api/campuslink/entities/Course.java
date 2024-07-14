@@ -12,20 +12,19 @@ public class Course {
     @Id
     private int id;
 
-    private String CourseName;
+    private String courseName;
 
     @Column(unique = true)
-    private String CourseCode;
+    private String courseCode;
     private String description;
-
 
     public Course() {
     }
 
-    public Course(int id, String CourseName, String CourseCode, String description) {
+    public Course(int id, String courseName, String courseCode, String description) {
         this.id = id;
-        this.CourseName = CourseName;
-        this.CourseCode = CourseCode;
+        this.courseName = courseName;
+        this.courseCode = courseCode;
         this.description = description;
     }
 
@@ -38,19 +37,19 @@ public class Course {
     }
 
     public String getCourseName() {
-        return this.CourseName;
+        return this.courseName;
     }
 
-    public void setCourseName(String CourseName) {
-        this.CourseName = CourseName;
+    public void setCourseName(String courseName) {
+        this.courseName = courseName;
     }
 
     public String getCourseCode() {
-        return this.CourseCode;
+        return this.courseCode;
     }
 
-    public void setCourseCode(String CourseCode) {
-        this.CourseCode = CourseCode;
+    public void setCourseCode(String courseCode) {
+        this.courseCode = courseCode;
     }
 
     public String getDescription() {
@@ -64,12 +63,11 @@ public class Course {
     @Override
     public String toString() {
         return "{" +
-            " id='" + getId() + "'" +
-            ", CourseName='" + getCourseName() + "'" +
-            ", CourseCode='" + getCourseCode() + "'" +
-            ", description='" + getDescription() + "'" +
-            "}";
+                " id='" + getId() + "'" +
+                ", courseName='" + getCourseName() + "'" +
+                ", courseCode='" + getCourseCode() + "'" +
+                ", description='" + getDescription() + "'" +
+                "}";
     }
-
 
 }
