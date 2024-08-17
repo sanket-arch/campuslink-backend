@@ -8,7 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 public class UserController {
@@ -77,13 +79,29 @@ public class UserController {
     }
 
     @DeleteMapping("/delete/user")
-    public ResponseEntity<?> removeUser(@RequestParam long id){
+    public ResponseEntity<?> removeUser(@RequestParam long id) {
         Result<User> response = this.userService.deleteUserById(id);
 
-        if(!response.isSuccess()){
-            return new ResponseEntity<>(response.getError(),HttpStatus.INTERNAL_SERVER_ERROR);
+        if (!response.isSuccess()) {
+            return new ResponseEntity<>(response.getError(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        return new ResponseEntity<>("User with id "+id +" deleted successfully.",HttpStatus.OK);
+        return new ResponseEntity<>("User with id " + id + " deleted successfully.", HttpStatus.OK);
+    }
+
+    @DeleteMapping("/delete/users")
+    public ResponseEntity<?> removeusers(@RequestParam String ids) {
+        List<Long> idList = Arrays.stream(ids.split(","))
+                .map(Long::parseLong)
+                .collect(Collectors.toList());
+
+        Result<User> response = this.userService.deleteUsers(idList);
+
+        if (!response.isSuccess()) {
+            return new ResponseEntity<>(response.getError(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        return new ResponseEntity<>("users with ids " + ids + " removed succesfully", HttpStatus.OK);
+
     }
 }

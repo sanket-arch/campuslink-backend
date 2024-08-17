@@ -95,4 +95,14 @@ public class UserService {
             return Result.error(e.getMessage());
         }
     }
+
+    public Result<User> deleteUsers(List<Long> ids){
+        try {
+            this.userRespository.deleteAllById(ids);
+            return Result.success(null);
+        }catch (Exception e){
+            e.printStackTrace();
+            return Result.error(e.getMessage());
+        }
+    }
 }
