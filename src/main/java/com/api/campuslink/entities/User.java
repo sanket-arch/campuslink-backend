@@ -13,6 +13,7 @@ import lombok.*;
 })
 @Data
 @NoArgsConstructor
+@Inheritance(strategy = InheritanceType.JOINED)
 public class User {
 
     @Id
@@ -40,7 +41,11 @@ public class User {
     @JoinColumn(name = "role_id")
     private Role role;
 
-    public User(String firstName, String lastName, String userName, long phoneNumber, String email, byte[] profilePicture, Role role) {
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
+    @JoinColumn(name = "campus_id")
+    private Campus campus;
+
+    public User(String firstName, String lastName, String userName, long phoneNumber, String email, byte[] profilePicture, Role role, Campus campus) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.userName = userName;
@@ -48,5 +53,6 @@ public class User {
         this.email = email;
         this.profilePicture = profilePicture;
         this.role = role;
+        this.campus = campus;
     }
 }

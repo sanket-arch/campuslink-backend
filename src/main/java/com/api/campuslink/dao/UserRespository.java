@@ -1,6 +1,5 @@
 package com.api.campuslink.dao;
 
-import com.api.campuslink.entities.Role;
 import com.api.campuslink.entities.User;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.CrudRepository;

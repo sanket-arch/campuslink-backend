@@ -20,7 +20,7 @@ public class UserController {
 
     @PostMapping("/add/user")
     public ResponseEntity<?> addUser(@RequestBody User req) {
-        User user = new User(req.getFirstName(), req.getLastName(), req.getUserName(), req.getPhoneNumber(), req.getEmail(), req.getProfilePicture(), req.getRole());
+        User user = new User(req.getFirstName(), req.getLastName(), req.getUserName(), req.getPhoneNumber(), req.getEmail(), req.getProfilePicture(), req.getRole(),req.getCampus());
 
         Result<User> response = this.userService.insertUser(user);
 
