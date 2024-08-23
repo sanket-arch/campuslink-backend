@@ -4,6 +4,8 @@ import com.api.campuslink.dao.RoleRepository;
 import com.api.campuslink.dao.UserRespository;
 import com.api.campuslink.entities.User;
 import com.api.campuslink.helpers.Result;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -21,6 +24,8 @@ public class UserService {
 
     @Autowired
     RoleRepository roleRepository;
+
+    String errorMsg = "";
 
     public Result<User> insertUser(User user) {
         try {
@@ -32,6 +37,11 @@ public class UserService {
             }
             User savedUser = userRespository.save(user);
             return Result.success(savedUser);
+        } catch (ConstraintViolationException e) {
+            errorMsg = e.getConstraintViolations().stream()
+                    .map(ConstraintViolation::getMessage)
+                    .collect(Collectors.joining(", "));
+            return Result.error(errorMsg);
         } catch (Exception e) {
             e.printStackTrace();
             return Result.error(e.getMessage());
@@ -81,26 +91,26 @@ public class UserService {
         }
     }
 
-    public Result<User> deleteUserById(long id){
-        try{
-            if(!userRespository.existsById(id)){
+    public Result<User> deleteUserById(long id) {
+        try {
+            if (!userRespository.existsById(id)) {
                 throw new Exception("User with " + id + " does not exists");
             }
 
             userRespository.deleteById(id);
             return Result.success(null);
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return Result.error(e.getMessage());
         }
     }
 
-    public Result<User> deleteUsers(List<Long> ids){
+    public Result<User> deleteUsers(List<Long> ids) {
         try {
             this.userRespository.deleteAllById(ids);
             return Result.success(null);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return Result.error(e.getMessage());
         }
