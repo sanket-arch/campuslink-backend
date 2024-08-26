@@ -4,20 +4,25 @@ import com.api.campuslink.dao.RoleRepository;
 import com.api.campuslink.dao.UserRespository;
 import com.api.campuslink.entities.User;
 import com.api.campuslink.helpers.Result;
+import com.api.campuslink.services.security.JwtService;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class UserService {
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
     @Autowired
@@ -25,6 +30,44 @@ public class UserService {
 
     @Autowired
     RoleRepository roleRepository;
+
+    @Autowired
+    AuthenticationManager authenticationManager;
+
+    @Autowired
+    JwtService jwtService;
+
+    public Result<Object> verify(ObjectNode credentials) {
+        try {
+            log.info("Got request to verify the user");
+            String username = credentials.get("username").asText();
+            String password = credentials.get("password").asText();
+
+            // Using authenticationManager from the SecurityConfig class
+            Authentication authentication =
+                    authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+            if (!authentication.isAuthenticated()) {
+                log.debug("Unable to verify the user");
+                return Result.error("Unable to verify the user");
+            }
+            log.info("User validated successfully");
+
+            log.info("Generating token");
+            String jwtToken = this.jwtService.generateToken(username);
+            log.info("Token generated successfully");
+
+            Map<String,String> responseMap = new HashMap<>();
+            responseMap.put("Token",jwtToken);
+            responseMap.put("Message","Token is valid for 30 min");
+
+            return Result.success(responseMap);
+        } catch (Exception e) {
+            log.info("Unable to verify the user");
+            log.info(e.getMessage());
+            return Result.error(e.getMessage());
+        }
+
+    }
 
     public Result<User> insertUser(User user) {
         try {
