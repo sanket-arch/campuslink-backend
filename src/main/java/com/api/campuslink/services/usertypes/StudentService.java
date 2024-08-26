@@ -11,6 +11,7 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -22,7 +23,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class StudentService {
-
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
     @Autowired
     StudentRepository studentRepository;
     @Autowired
@@ -43,7 +44,7 @@ public class StudentService {
                 log.debug("Role with id " + student.getRole().getId() + "does not exist");
                 return Result.error("Role with id " + student.getRole().getId() + "does not exist");
             }
-
+            student.setPassword(encoder.encode(student.getPassword()));
             Student savedStudent = studentRepository.save(student);
             log.info("Student with registration number " + savedStudent.getRegNo() + " saved successfully with user id " + savedStudent.getUserId());
             return Result.success(savedStudent);

@@ -9,6 +9,7 @@ import jakarta.validation.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -18,14 +19,12 @@ import java.util.stream.Collectors;
 
 @Service
 public class UserService {
-
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
     @Autowired
     UserRespository userRespository;
 
     @Autowired
     RoleRepository roleRepository;
-
-    String errorMsg = "";
 
     public Result<User> insertUser(User user) {
         try {
@@ -35,10 +34,11 @@ public class UserService {
             if (!roleRepository.existsById(user.getRole().getId())) {
                 return Result.error("specified role does not exist");
             }
+            user.setPassword(encoder.encode(user.getPassword()));
             User savedUser = userRespository.save(user);
             return Result.success(savedUser);
         } catch (ConstraintViolationException e) {
-            errorMsg = e.getConstraintViolations().stream()
+            String errorMsg = e.getConstraintViolations().stream()
                     .map(ConstraintViolation::getMessage)
                     .collect(Collectors.joining(", "));
             return Result.error(errorMsg);

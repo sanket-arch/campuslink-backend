@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface UserRespository extends CrudRepository<User, Long> {
     public List<User> findAll(Sort sort);
+
+    public User findByUserName(String userName);
 }

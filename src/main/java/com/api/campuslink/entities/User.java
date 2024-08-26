@@ -27,6 +27,9 @@ public class User {
     @NotEmpty(message = "username cannot be empty")
     private String userName;
 
+    @NotEmpty(message = "password cannot be empty or null")
+    private String password;
+
     private long phoneNumber;
 
     @NotNull(message = "email cannot be null")
@@ -45,7 +48,7 @@ public class User {
     @JoinColumn(name = "campus_id")
     private Campus campus;
 
-    public User(String firstName, String lastName, String userName, long phoneNumber, String email, byte[] profilePicture, Role role, Campus campus) {
+    public User(String firstName, String lastName, String userName, String password, long phoneNumber, String email, byte[] profilePicture, Role role, Campus campus) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.userName = userName;
@@ -54,5 +57,6 @@ public class User {
         this.profilePicture = profilePicture;
         this.role = role;
         this.campus = campus;
+        this.password = password;
     }
 }

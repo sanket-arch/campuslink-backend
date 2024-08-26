@@ -21,7 +21,7 @@ public class StudentController {
     public ResponseEntity<?> addStudent(@RequestBody Student req) {
         log.info("Got request to add new student");
 
-        Student student = new Student(req.getFirstName(), req.getLastName(), req.getUserName(), req.getPhoneNumber(), req.getEmail(), req.getProfilePicture(), req.getRole(), req.getCampus(), req.getRegNo(), req.getPassingYear(), req.getCourse());
+        Student student = new Student(req.getFirstName(), req.getLastName(), req.getUserName(), req.getPassword(), req.getPhoneNumber(), req.getEmail(), req.getProfilePicture(), req.getRole(), req.getCampus(), req.getRegNo(), req.getPassingYear(), req.getCourse());
         Result<Student> result = studentService.insertStudent(student);
 
         if (!result.isSuccess()) {

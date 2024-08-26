@@ -1,9 +1,6 @@
 package com.api.campuslink.entities.usertypes;
 
-import com.api.campuslink.entities.Campus;
-import com.api.campuslink.entities.Course;
-import com.api.campuslink.entities.Role;
-import com.api.campuslink.entities.User;
+import com.api.campuslink.entities.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -30,8 +27,8 @@ public class Student extends User {
     private Course course;
 
 
-    public Student(String firstName, String lastName, String userName, long phoneNumber, String email, byte[] profilePicture, Role role, Campus campus,String regNo, int passingYear, Course course) {
-        super(firstName, lastName, userName, phoneNumber, email, profilePicture, role, campus);
+    public Student(String firstName, String lastName, String userName, String password, long phoneNumber, String email, byte[] profilePicture, Role role, Campus campus, String regNo, int passingYear, Course course) {
+        super(firstName, lastName, userName, password, phoneNumber, email, profilePicture, role, campus);
         this.regNo = regNo;
         this.passingYear = passingYear;
         this.course = course;
