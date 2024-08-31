@@ -58,7 +58,7 @@ public class UserService {
 
             Map<String,String> responseMap = new HashMap<>();
             responseMap.put("Token",jwtToken);
-            responseMap.put("Message","Token is valid for 30 min");
+            responseMap.put("Validity","30 min");
 
             return Result.success(responseMap);
         } catch (Exception e) {

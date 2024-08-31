@@ -1,5 +1,6 @@
 package com.api.campuslink.security;
 
+import com.api.campuslink.security.filters.JwtFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,13 +16,17 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     @Autowired
-    private UserDetailsService userDetailsService; // UserDetailsServiceImpl class wll be injected
+    private UserDetailsService userDetailsService; // ServiceImpl class wll be injected
+
+    @Autowired
+    private JwtFilter jwtFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -33,6 +38,7 @@ public class SecurityConfig {
                 .httpBasic(Customizer.withDefaults()) // allow to access api with basic auth (i.e. username and password)
                 .sessionManagement(session -> session.
                         sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // each request must be stateless, and the security context must be handled per request
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // before  UsernamePasswordAuthenticationFilter applying jwtFilter
                 .build();
     }
 
