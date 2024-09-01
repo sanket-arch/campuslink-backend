@@ -22,18 +22,7 @@ public class UserController {
     @Autowired
     UserService userService;
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody ObjectNode req) {
-        log.info("Got request for logging user in");
-        Result<Object> result = this.userService.verify(req);
 
-        if (!result.isSuccess()) {
-            log.debug("Unable to verify the user");
-            return new ResponseEntity<>(result.getError(), HttpStatus.UNAUTHORIZED);
-        }
-        log.info("User verified successfully");
-        return ResponseEntity.ok(result.getData());
-    }
 
     @PostMapping("/add/user")
     public ResponseEntity<?> addUser(@RequestBody User req) {

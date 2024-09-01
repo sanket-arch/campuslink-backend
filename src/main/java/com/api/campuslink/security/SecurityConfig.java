@@ -33,7 +33,7 @@ public class SecurityConfig {
         return httpSecurity
                 .csrf(customizer -> customizer.disable()) // disabling the csrf
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("/add/user/student", "/add/user", "/login").permitAll() // only allow these route without authentication
+                        .requestMatchers("/add/user/student", "/add/user", "/api/auth/login").permitAll() // only allow these route without authentication
                         .anyRequest().authenticated()) // any request must be validated
                 .httpBasic(Customizer.withDefaults()) // allow to access api with basic auth (i.e. username and password)
                 .sessionManagement(session -> session.
