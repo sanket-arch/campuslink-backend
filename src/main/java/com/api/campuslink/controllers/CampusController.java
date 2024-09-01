@@ -9,21 +9,41 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.api.campuslink.entities.Role;
+import com.api.campuslink.entities.Campus;
 import com.api.campuslink.helpers.Result;
-import com.api.campuslink.services.RolesServices;
+import com.api.campuslink.services.CampusServices;
 
 @RestController
-@RequestMapping("/api/role")
-public class RolesController {
-
+@RequestMapping("/api/campus")
+public class CampusController {
     @Autowired
-    RolesServices rolesServices;
+    CampusServices campusServices;
+
+    @PostMapping("/add")
+    public ResponseEntity<?> createCampus(@RequestBody Campus req) {
+
+        Campus campus = new Campus(
+                req.getId(),
+                req.getCampusName(),
+                req.getCampusDescription(),
+                req.getCampusAddress(),
+                req.getLink());
+
+        Result<Campus> response = this.campusServices.insertCampus(campus);
+
+        if (!response.isSuccess()) {
+            return new ResponseEntity<>("Unable to save due to " + response.getError(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        return new ResponseEntity<>("Campus saved successfully with id " + response.getData().getId(),
+                HttpStatus.OK);
+    }
 
     @GetMapping("/all")
-    public ResponseEntity<?> getRoles(@RequestParam(defaultValue = "id") String sortBy,
+    public ResponseEntity<?> getCampuses(@RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "true") boolean asc) {
-        Result<List<Role>> response = this.rolesServices.getAllRoles(sortBy, asc);
+        Result<List<Campus>> response = this.campusServices.fetchAllCampus(sortBy, asc);
 
         if (!response.isSuccess()) {
             return new ResponseEntity<>(response.getError(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -37,8 +57,8 @@ public class RolesController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getRole(@RequestParam int id) {
-        Result<Role> response = this.rolesServices.getRoleById(id);
+    public ResponseEntity<?> getCampus(@RequestParam int id) {
+        Result<Campus> response = this.campusServices.fetchCampusById(id);
 
         if (!response.isSuccess()) {
             return new ResponseEntity<>(response.getError(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -47,36 +67,17 @@ public class RolesController {
         if (response.getData() == null) {
             return new ResponseEntity<>("No data available for the given id", HttpStatus.NOT_FOUND);
         }
+
         return new ResponseEntity<>(response.getData(), HttpStatus.OK);
     }
 
-    @PostMapping("/add")
-    public ResponseEntity<?> createRole(@RequestBody Role req) {
-        Role role = new Role(
-                req.getId(),
-                req.getName(),
-                req.getRoleCode(),
-                req.getDescription());
-
-        Result<Role> response = this.rolesServices.insertNewRole(role);
-
-        if (response.isSuccess()) {
-            return new ResponseEntity<>("Role saved successfully with id " + response.getData().getId(),
-                    HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>("Unable to save due to " + response.getError(),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-    }
-
     @PutMapping("/update")
-    public ResponseEntity<?> updateRole(@RequestBody Role req) {
+    public ResponseEntity<?> updateCampus(@RequestBody Campus req) {
 
-        Result<Role> response = this.rolesServices.updateRole(req);
+        Result<Campus> response = this.campusServices.updateCampus(req);
 
         if (response.isSuccess()) {
-            return new ResponseEntity<>("Role updated successfully for id " + response.getData().getId(),
+            return new ResponseEntity<>("Campus updated successfully for id " + response.getData().getId(),
                     HttpStatus.OK);
         } else {
             return new ResponseEntity<>("Unable to update due to " + response.getError(),
@@ -85,12 +86,11 @@ public class RolesController {
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<?> removeRole(@RequestParam int id) {
-
-        Result<Role> response = this.rolesServices.deleteRole(id);
+    public ResponseEntity<?> removeCampus(@RequestParam int id) {
+        Result<Campus> response = this.campusServices.deleteCampus(id);
 
         if (response.isSuccess()) {
-            return new ResponseEntity<>("Role removed successfully", HttpStatus.OK);
+            return new ResponseEntity<>("Campus removed successfully", HttpStatus.OK);
         } else {
             return new ResponseEntity<>("Unable to remove due to " + response.getError(),
                     HttpStatus.INTERNAL_SERVER_ERROR);
@@ -98,14 +98,15 @@ public class RolesController {
     }
 
     @DeleteMapping("/delete/multiple")
-    public ResponseEntity<?> removeRoles(@RequestParam String ids) {
+    public ResponseEntity<?> removeCampuses(@RequestParam String ids) {
         List<Integer> idList = Arrays.stream(ids.split(","))
                 .map(Integer::parseInt)
                 .collect(Collectors.toList());
-        Result<Role> response = this.rolesServices.deleteRoles(idList);
+
+        Result<Campus> response = this.campusServices.deleteCampuses(idList);
 
         if (response.isSuccess()) {
-            return new ResponseEntity<>("Roles removed successfully", HttpStatus.OK);
+            return new ResponseEntity<>("Campuses removed successfully", HttpStatus.OK);
         } else {
             return new ResponseEntity<>("Unable to remove due to " + response.getError(),
                     HttpStatus.INTERNAL_SERVER_ERROR);
