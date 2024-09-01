@@ -7,25 +7,20 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.api.campuslink.entities.Role;
 import com.api.campuslink.helpers.Result;
 import com.api.campuslink.services.RolesServices;
 
 @RestController
+@RequestMapping("/api/role")
 public class RolesController {
 
     @Autowired
     RolesServices rolesServices;
 
-    @GetMapping("/roles")
+    @GetMapping("/all")
     public ResponseEntity<?> getRoles(@RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "true") boolean asc) {
         Result<List<Role>> response = this.rolesServices.getAllRoles(sortBy, asc);
@@ -41,7 +36,7 @@ public class RolesController {
         return new ResponseEntity<>(response.getData(), HttpStatus.OK);
     }
 
-    @GetMapping("/role")
+    @GetMapping
     public ResponseEntity<?> getRole(@RequestParam int id) {
         Result<Role> response = this.rolesServices.getRoleById(id);
 
@@ -55,7 +50,7 @@ public class RolesController {
         return new ResponseEntity<>(response.getData(), HttpStatus.OK);
     }
 
-    @PostMapping("/add/role")
+    @PostMapping("/add")
     public ResponseEntity<?> createRole(@RequestBody Role req) {
         Role role = new Role(
                 req.getId(),
@@ -75,7 +70,7 @@ public class RolesController {
 
     }
 
-    @PutMapping("/update/role")
+    @PutMapping("/update")
     public ResponseEntity<?> updateRole(@RequestBody Role req) {
 
         Result<Role> response = this.rolesServices.updateRole(req);
@@ -89,7 +84,7 @@ public class RolesController {
         }
     }
 
-    @DeleteMapping("/remove/role")
+    @DeleteMapping("/delete")
     public ResponseEntity<?> removeRole(@RequestParam int id) {
 
         Result<Role> response = this.rolesServices.deleteRole(id);
@@ -102,7 +97,7 @@ public class RolesController {
         }
     }
 
-    @DeleteMapping("/remove/roles")
+    @DeleteMapping("/delete/multiple")
     public ResponseEntity<?> removeRoles(@RequestParam String ids) {
         List<Integer> idList = Arrays.stream(ids.split(","))
                 .map(Integer::parseInt)

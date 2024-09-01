@@ -12,12 +12,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequestMapping("/api/user/student")
 @Slf4j
 public class StudentController {
     @Autowired
     StudentService studentService;
 
-    @PostMapping("/add/user/student")
+    @PostMapping("/add")
     public ResponseEntity<?> addStudent(@RequestBody Student req) {
         log.info("Got request to add new student");
 
@@ -31,7 +32,7 @@ public class StudentController {
         return new ResponseEntity<>("Student saved successfully with registration number " + result.getData().getRegNo(), HttpStatus.CREATED);
     }
 
-    @GetMapping("/user/students")
+    @GetMapping("/all")
     public ResponseEntity<?> getAllStudent(@RequestParam(defaultValue = "regNo") String sortBy,
                                            @RequestParam(defaultValue = "true") boolean asc) {
         log.info("Got request to fetch all the users");
@@ -47,7 +48,7 @@ public class StudentController {
         return new ResponseEntity<>(response.getData(), HttpStatus.OK);
     }
 
-    @GetMapping("/user/student")
+    @GetMapping
     public ResponseEntity<?> getStudent(@RequestParam String findBy, @RequestParam String value) {
         log.info("Got request to get student with " + findBy + " = " + value);
         Result<Student> response = this.studentService.getStudent(findBy, value);
@@ -65,7 +66,7 @@ public class StudentController {
         return new ResponseEntity<>(response.getData(), HttpStatus.OK);
     }
 
-    @PutMapping("/update/user/student")
+    @PutMapping("/update")
     public ResponseEntity<?> updateStudent(@RequestBody Student student) {
         log.info("Got request for updating user with id " + student.getUserId());
         Result<Student> response = this.studentService.updateStudent(student);
@@ -77,7 +78,7 @@ public class StudentController {
         return new ResponseEntity<>(response.getData(), HttpStatus.OK);
     }
 
-    @DeleteMapping("/delete/user/student")
+    @DeleteMapping("/delete")
     public ResponseEntity<?> removeStudent(@RequestParam Long id) {
         log.info("Got request to delete user with id = " + id);
         Result<Student> response = this.studentService.removeStudent(id);
@@ -88,7 +89,7 @@ public class StudentController {
         return new ResponseEntity<>("Student with id " + id + " deleted successfully.", HttpStatus.OK);
     }
 
-    @DeleteMapping("/delete/user/students")
+    @DeleteMapping("/delete/multiple")
     public ResponseEntity<?> removeStudents(@RequestParam String ids) {
         Result<Student> response = this.studentService.removeStudents(ids);
 

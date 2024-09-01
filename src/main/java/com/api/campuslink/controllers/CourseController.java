@@ -7,25 +7,20 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.api.campuslink.entities.Course;
 import com.api.campuslink.helpers.Result;
 import com.api.campuslink.services.CourseServices;
 
 @RestController
+@RequestMapping("/api/course")
 public class CourseController {
 
     @Autowired
     CourseServices courseServices;
 
-    @PostMapping("/add/course")
+    @PostMapping("/add")
     public ResponseEntity<?> createCourse(@RequestBody Course req) {
 
         Course course = new Course(
@@ -45,7 +40,7 @@ public class CourseController {
                 HttpStatus.OK);
     }
 
-    @GetMapping("/courses")
+    @GetMapping("/all")
     public ResponseEntity<?> getCourses(@RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "true") boolean asc) {
         Result<List<Course>> response = this.courseServices.fetchAllCourses(sortBy, asc);
@@ -61,7 +56,7 @@ public class CourseController {
         return new ResponseEntity<>(response.getData(), HttpStatus.OK);
     }
 
-    @GetMapping("/course")
+    @GetMapping
     public ResponseEntity<?> getCourse(@RequestParam int id) {
         Result<Course> response = this.courseServices.fetchCourseById(id);
 
@@ -76,7 +71,7 @@ public class CourseController {
         return new ResponseEntity<>(response.getData(), HttpStatus.OK);
     }
 
-    @PutMapping("/update/course")
+    @PutMapping("/update")
     public ResponseEntity<?> updateCourse(@RequestBody Course req) {
 
         Result<Course> response = this.courseServices.updateCourse(req);
@@ -90,7 +85,7 @@ public class CourseController {
         }
     }
 
-    @DeleteMapping("/remove/course")
+    @DeleteMapping("/delete")
     public ResponseEntity<?> removeCourse(@RequestParam int id) {
         Result<Course> response = this.courseServices.deleteCourse(id);
 
@@ -102,7 +97,7 @@ public class CourseController {
         }
     }
 
-    @DeleteMapping("/remove/courses")
+    @DeleteMapping("/delete")
     public ResponseEntity<?> removeCourses(@RequestParam String ids) {
         List<Integer> idList = Arrays.stream(ids.split(","))
                 .map(Integer::parseInt)

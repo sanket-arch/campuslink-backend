@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
+@RequestMapping("/api/user")
 @Slf4j
 public class UserController {
 
@@ -24,7 +25,7 @@ public class UserController {
 
 
 
-    @PostMapping("/add/user")
+    @PostMapping("/add")
     public ResponseEntity<?> addUser(@RequestBody User req) {
         User user = new User(req.getFirstName(), req.getLastName(), req.getUserName(), req.getPassword(), req.getPhoneNumber(), req.getEmail(), req.getProfilePicture(), req.getRole(), req.getCampus());
 
@@ -40,7 +41,7 @@ public class UserController {
 
     }
 
-    @GetMapping("/users")
+    @GetMapping("/all")
     public ResponseEntity<?> getALlUsers(@RequestParam(defaultValue = "userId") String sortBy,
                                          @RequestParam(defaultValue = "true") boolean asc) {
 
@@ -57,7 +58,7 @@ public class UserController {
         return new ResponseEntity<>(result.getData(), HttpStatus.OK);
     }
 
-    @GetMapping("/user")
+    @GetMapping
     public ResponseEntity<?> getUserById(@RequestParam long userId) {
 
         Result<User> response = this.userService.getUserbyId(userId);
@@ -73,7 +74,7 @@ public class UserController {
 
     }
 
-    @PutMapping("/update/user")
+    @PutMapping("/update")
     public ResponseEntity<?> updateUser(@RequestBody User user) {
         Result<User> response = this.userService.updateUser(user);
 
@@ -84,7 +85,7 @@ public class UserController {
         return new ResponseEntity<>(response.getData(), HttpStatus.OK);
     }
 
-    @DeleteMapping("/delete/user")
+    @DeleteMapping("/delete")
     public ResponseEntity<?> removeUser(@RequestParam long id) {
         Result<User> response = this.userService.deleteUserById(id);
 
@@ -95,7 +96,7 @@ public class UserController {
         return new ResponseEntity<>("User with id " + id + " deleted successfully.", HttpStatus.OK);
     }
 
-    @DeleteMapping("/delete/users")
+    @DeleteMapping("/delete/multiple")
     public ResponseEntity<?> removeusers(@RequestParam String ids) {
         List<Long> idList = Arrays.stream(ids.split(","))
                 .map(Long::parseLong)
