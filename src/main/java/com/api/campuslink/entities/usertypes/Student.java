@@ -1,10 +1,15 @@
 package com.api.campuslink.entities.usertypes;
 
-import com.api.campuslink.entities.*;
+import com.api.campuslink.entities.Campus;
+import com.api.campuslink.entities.Course;
+import com.api.campuslink.entities.Role;
+import com.api.campuslink.entities.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 
 @Entity
@@ -22,7 +27,7 @@ public class Student extends User {
     private int passingYear;
 
     @NotNull(message = "Course cannot be null")
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "course_id")
     private Course course;
 

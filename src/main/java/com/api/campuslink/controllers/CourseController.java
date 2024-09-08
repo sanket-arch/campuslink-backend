@@ -97,7 +97,7 @@ public class CourseController {
         }
     }
 
-    @DeleteMapping("/delete")
+    @DeleteMapping("/delete/multiple")
     public ResponseEntity<?> removeCourses(@RequestParam String ids) {
         List<Integer> idList = Arrays.stream(ids.split(","))
                 .map(Integer::parseInt)
