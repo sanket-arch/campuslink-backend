@@ -1,16 +1,19 @@
 package com.api.campuslink.services;
 
+import com.api.campuslink.dao.CampusRepository;
 import com.api.campuslink.dao.RoleRepository;
 import com.api.campuslink.dao.UserRespository;
+import com.api.campuslink.entities.Campus;
+import com.api.campuslink.entities.Role;
 import com.api.campuslink.entities.User;
 import com.api.campuslink.helpers.Result;
 import com.api.campuslink.services.security.JwtService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -30,6 +33,9 @@ public class UserService {
 
     @Autowired
     RoleRepository roleRepository;
+
+    @Autowired
+    CampusRepository campusRepository;
 
     @Autowired
     AuthenticationManager authenticationManager;
@@ -56,9 +62,9 @@ public class UserService {
             String jwtToken = this.jwtService.generateToken(username);
             log.info("Token generated successfully");
 
-            Map<String,String> responseMap = new HashMap<>();
-            responseMap.put("Token",jwtToken);
-            responseMap.put("Validity","30 min");
+            Map<String, String> responseMap = new HashMap<>();
+            responseMap.put("Token", jwtToken);
+            responseMap.put("Validity", "30 min");
 
             return Result.success(responseMap);
         } catch (Exception e) {
@@ -71,12 +77,11 @@ public class UserService {
 
     public Result<User> insertUser(User user) {
         try {
-            if (userRespository.existsById(user.getUserId())) {
-                throw new DataIntegrityViolationException("This user already exists");
+            Result<User> result = this.getUserOtherDetail(user);
+            if (!result.isSuccess()) {
+                return result;
             }
-            if (!roleRepository.existsById(user.getRole().getId())) {
-                return Result.error("specified role does not exist");
-            }
+            user = result.getData();
             user.setPassword(encoder.encode(user.getPassword()));
             User savedUser = userRespository.save(user);
             return Result.success(savedUser);
@@ -122,9 +127,11 @@ public class UserService {
             if (!this.userRespository.existsById(id)) {
                 return Result.error("The user with given id " + id + " does not exist.");
             }
-            if (!roleRepository.existsById(user.getRole().getId())) {
-                return Result.error("Specified role does not exist");
+            Result<User> result = this.getUserOtherDetail(user);
+            if (!result.isSuccess()) {
+                return result;
             }
+            user = result.getData();
             User updatedUser = this.userRespository.save(user);
             return Result.success(updatedUser);
 
@@ -157,5 +164,27 @@ public class UserService {
             e.printStackTrace();
             return Result.error(e.getMessage());
         }
+    }
+
+    private Result<User> getUserOtherDetail(@NotNull User user) {
+
+        int roleID = user.getRole().getId();
+        int campusID = user.getCampus().getId();
+
+        if (!roleRepository.existsById(roleID)) {
+            log.debug("Role with id " + roleID + " does not exist");
+            return Result.error("Role with id " + roleID + " does not exist");
+        }
+        if (!campusRepository.existsById(campusID)) {
+            log.debug("Campus with id " + campusID + "does not exist");
+            return Result.error("Campus with id " + campusID + " does not exist");
+        }
+
+        Role role = roleRepository.findById(roleID);
+        user.setRole(role);
+        Campus campus = campusRepository.findById(campusID);
+        user.setCampus(campus);
+
+        return Result.success(user);
     }
 }

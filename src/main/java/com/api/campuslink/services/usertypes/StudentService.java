@@ -1,13 +1,17 @@
 package com.api.campuslink.services.usertypes;
 
+import com.api.campuslink.dao.CampusRepository;
 import com.api.campuslink.dao.CourseRepository;
 import com.api.campuslink.dao.RoleRepository;
 import com.api.campuslink.dao.usertypes.StudentRepository;
-
+import com.api.campuslink.entities.Campus;
+import com.api.campuslink.entities.Course;
+import com.api.campuslink.entities.Role;
 import com.api.campuslink.entities.usertypes.Student;
 import com.api.campuslink.helpers.Result;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -31,19 +35,18 @@ public class StudentService {
     @Autowired
     RoleRepository roleRepository;
 
+    @Autowired
+    CampusRepository campusRepository;
+
     public Result<Student> insertStudent(Student student) {
         try {
             log.info("Saving new student with registration number " + student.getRegNo());
+            Result<Student> studentDetails = this.getStudentOtherDetail(student);
 
-            if (!courseRepository.existsById(student.getCourse().getId())) {
-                log.debug("Course with id " + student.getCourse().getId() + " does not exist");
-                return Result.error("Course with id " + student.getCourse().getId() + " does not exist");
+            if (!studentDetails.isSuccess()) {
+                return studentDetails;
             }
-
-            if (!roleRepository.existsById(student.getRole().getId())) {
-                log.debug("Role with id " + student.getRole().getId() + "does not exist");
-                return Result.error("Role with id " + student.getRole().getId() + "does not exist");
-            }
+            student = studentDetails.getData();
             student.setPassword(encoder.encode(student.getPassword()));
             Student savedStudent = studentRepository.save(student);
             log.info("Student with registration number " + savedStudent.getRegNo() + " saved successfully with user id " + savedStudent.getUserId());
@@ -147,6 +150,13 @@ public class StudentService {
                 log.debug("user with given id does not exist");
                 return Result.error("user with given id does not exist");
             }
+
+            Result<Student> studentDetails = this.getStudentOtherDetail(student);
+            if (!studentDetails.isSuccess()) {
+                return studentDetails;
+            }
+
+            student = studentDetails.getData();
             Student updatedStudent = this.studentRepository.save(student);
             log.info("successfully updated student with id " + updatedStudent.getUserId());
             return Result.success(updatedStudent);
@@ -190,4 +200,34 @@ public class StudentService {
         }
 
     }
+
+    private Result<Student> getStudentOtherDetail(@NotNull Student student) {
+
+        int courseID = student.getCourse().getId();
+        int roleID = student.getRole().getId();
+        int campusID = student.getCampus().getId();
+
+        if (!courseRepository.existsById(courseID)) {
+            log.debug("Course with id " + courseID + " does not exist");
+            return Result.error("Course with id " + courseID + " does not exist");
+        }
+        if (!roleRepository.existsById(roleID)) {
+            log.debug("Role with id " + roleID + "does not exist");
+            return Result.error("Role with id " + roleID + " does not exist");
+        }
+        if (!campusRepository.existsById(campusID)) {
+            log.debug("Campus with id " + campusID + "does not exist");
+            return Result.error("Campus with id " + campusID + " does not exist");
+        }
+
+        Course course = courseRepository.findById(courseID);
+        student.setCourse(course);
+        Role role = roleRepository.findById(roleID);
+        student.setRole(role);
+        Campus campus = campusRepository.findById(campusID);
+        student.setCampus(campus);
+
+        return Result.success(student);
+    }
+
 }
