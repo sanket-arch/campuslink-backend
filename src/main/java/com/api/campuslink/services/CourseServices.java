@@ -9,7 +9,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.api.campuslink.dao.CourseRepository;
-import com.api.campuslink.entities.Course;
+import com.api.campuslink.models.entities.Course;
 import com.api.campuslink.helpers.Result;
 
 @Service

@@ -4,11 +4,13 @@ import com.api.campuslink.dao.CampusRepository;
 import com.api.campuslink.dao.CourseRepository;
 import com.api.campuslink.dao.RoleRepository;
 import com.api.campuslink.dao.usertypes.StudentRepository;
-import com.api.campuslink.entities.Campus;
-import com.api.campuslink.entities.Course;
-import com.api.campuslink.entities.Role;
-import com.api.campuslink.entities.usertypes.Student;
 import com.api.campuslink.helpers.Result;
+import com.api.campuslink.models.entities.Campus;
+import com.api.campuslink.models.entities.Course;
+import com.api.campuslink.models.entities.Role;
+import com.api.campuslink.models.entities.usertypes.Faculty;
+import com.api.campuslink.models.entities.usertypes.Student;
+import com.api.campuslink.services.UserService;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.constraints.NotNull;
@@ -37,6 +39,9 @@ public class StudentService {
 
     @Autowired
     CampusRepository campusRepository;
+
+    @Autowired
+    UserService userService;
 
     public Result<Student> insertStudent(Student student) {
         try {
@@ -151,13 +156,9 @@ public class StudentService {
                 return Result.error("user with given id does not exist");
             }
 
-            Result<Student> studentDetails = this.getStudentOtherDetail(student);
-            if (!studentDetails.isSuccess()) {
-                return studentDetails;
-            }
+            Student studentDetails = this.getStudentDetailsToUpdate(student);
+            Student updatedStudent = this.studentRepository.save(studentDetails);
 
-            student = studentDetails.getData();
-            Student updatedStudent = this.studentRepository.save(student);
             log.info("successfully updated student with id " + updatedStudent.getUserId());
             return Result.success(updatedStudent);
         } catch (Exception e) {
@@ -230,4 +231,21 @@ public class StudentService {
         return Result.success(student);
     }
 
+
+    private Student getStudentDetailsToUpdate(Student student) throws Exception {
+        Result<Student> result = this.getStudent("id", String.valueOf(student.getUserId()));
+
+        if (!result.isSuccess()) {
+            throw new Exception(result.getError());
+        }
+
+        Student studentDetails = result.getData();
+        studentDetails = this.userService.getUserDetailsToUpdate(student, studentDetails);
+        Optional.ofNullable(student.getPassingYear())
+                .ifPresent(studentDetails::setPassingYear);
+        Optional.ofNullable(student.getCourse())
+                .ifPresent(studentDetails::setCourse);
+
+        return studentDetails;
+    }
 }

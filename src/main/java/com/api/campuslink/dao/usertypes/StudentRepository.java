@@ -1,8 +1,7 @@
 package com.api.campuslink.dao.usertypes;
 
-import com.api.campuslink.entities.usertypes.Student;
+import com.api.campuslink.models.entities.usertypes.Student;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.api.campuslink.entities;
+package com.api.campuslink.models.entities;
 
 
 import jakarta.persistence.*;

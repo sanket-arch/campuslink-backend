@@ -1,6 +1,6 @@
-package com.api.campuslink.entities.security;
+package com.api.campuslink.models.entities.security;
 
-import com.api.campuslink.entities.User;
+import com.api.campuslink.models.entities.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

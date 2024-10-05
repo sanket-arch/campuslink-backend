@@ -1,8 +1,8 @@
 package com.api.campuslink.services.security;
 
 import com.api.campuslink.dao.UserRespository;
-import com.api.campuslink.entities.User;
-import com.api.campuslink.entities.security.UserPrincipal;
+import com.api.campuslink.models.entities.User;
+import com.api.campuslink.models.entities.security.UserPrincipal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;

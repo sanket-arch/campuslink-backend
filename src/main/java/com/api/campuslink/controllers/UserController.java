@@ -1,16 +1,14 @@
 package com.api.campuslink.controllers;
 
-import com.api.campuslink.entities.User;
+import com.api.campuslink.models.entities.User;
 import com.api.campuslink.helpers.Result;
 import com.api.campuslink.services.UserService;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.awt.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,11 +21,19 @@ public class UserController {
     @Autowired
     UserService userService;
 
-
-
     @PostMapping("/add")
     public ResponseEntity<?> addUser(@RequestBody User req) {
-        User user = new User(req.getFirstName(), req.getLastName(), req.getUserName(), req.getPassword(), req.getPhoneNumber(), req.getEmail(), req.getProfilePicture(), req.getRole(), req.getCampus());
+        User user = User.builder()
+                .firstName(req.getFirstName())
+                .lastName(req.getLastName())
+                .userName(req.getUserName())
+                .password(req.getPassword())
+                .email(req.getEmail())
+                .phoneNumber(req.getPhoneNumber())
+                .profilePicture(req.getProfilePicture())
+                .role(req.getRole())
+                .campus(req.getCampus())
+                .build();
 
         Result<User> response = this.userService.insertUser(user);
 
