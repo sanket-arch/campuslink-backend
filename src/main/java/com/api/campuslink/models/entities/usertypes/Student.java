@@ -23,7 +23,7 @@ public class Student extends User {
     @NotEmpty(message = "Registration number cannot be empty or null")
     private String regNo;
     @NotNull(message = "PassingYear cannot be null")
-    private int passingYear;
+    private Long passingYear;
 
     @NotNull(message = "Course cannot be null")
     @ManyToOne(fetch = FetchType.EAGER)

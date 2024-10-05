@@ -84,5 +84,25 @@ public class FacultyController {
         return new ResponseEntity<>(result.getData(), HttpStatus.OK);
     }
 
+    @DeleteMapping("/delete")
+    public ResponseEntity<?> removeFaculty(@RequestParam Long id) {
+        log.info("Got request to delete user with id = " + id);
+        Result<Faculty> response = this.facultyService.removeFaculty(id);
 
+        if (!response.isSuccess()) {
+            return new ResponseEntity<>(response.getError(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return new ResponseEntity<>("Faculty with id " + id + " deleted successfully.", HttpStatus.OK);
+    }
+
+    @DeleteMapping("/delete/multiple")
+    public ResponseEntity<?> removeFaculties(@RequestParam String ids) {
+        Result<Faculty> response = this.facultyService.removeFaculties(ids);
+
+        if (!response.isSuccess()) {
+            return new ResponseEntity<>(response.getError(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        return new ResponseEntity<>("Deleted successfully", HttpStatus.OK);
+    }
 }

@@ -7,6 +7,7 @@ import com.api.campuslink.models.entities.Campus;
 import com.api.campuslink.models.entities.Role;
 import com.api.campuslink.models.entities.User;
 import com.api.campuslink.helpers.Result;
+import com.api.campuslink.models.entities.usertypes.Faculty;
 import com.api.campuslink.services.security.JwtService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.validation.ConstraintViolation;
@@ -139,6 +140,27 @@ public class UserService {
             e.printStackTrace();
             return Result.error(e.getMessage());
         }
+    }
+
+    public <T extends User>  T getUserDetailsToUpdate(T user, T userDetails){
+        Optional.ofNullable(user.getFirstName())
+                .ifPresent(userDetails::setFirstName);
+        Optional.ofNullable(user.getLastName())
+                .ifPresent(userDetails::setLastName);
+        Optional.ofNullable(user.getUserName())
+                .ifPresent(userDetails::setUserName);
+        Optional.ofNullable(user.getEmail())
+                .ifPresent(userDetails::setEmail);
+        Optional.ofNullable(user.getPhoneNumber())
+                .ifPresent(userDetails::setPhoneNumber);
+        Optional.ofNullable(user.getProfilePicture())
+                .ifPresent(userDetails::setProfilePicture);
+        Optional.ofNullable(user.getRole())
+                .ifPresent(userDetails::setRole);
+        Optional.ofNullable(user.getCampus())
+                .ifPresent(userDetails::setCampus);
+
+        return userDetails;
     }
 
     public Result<User> deleteUserById(long id) {

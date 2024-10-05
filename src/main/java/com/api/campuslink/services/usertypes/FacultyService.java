@@ -7,6 +7,8 @@ import com.api.campuslink.helpers.Result;
 import com.api.campuslink.models.entities.Course;
 import com.api.campuslink.models.entities.Department;
 import com.api.campuslink.models.entities.usertypes.Faculty;
+import com.api.campuslink.models.entities.usertypes.Student;
+import com.api.campuslink.services.UserService;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,9 @@ public class FacultyService {
     private CourseRepository courseRepository;
     @Autowired
     private DepartmentRepository departmentRepository;
+
+    @Autowired
+    private UserService userService;
 
     public Result<Faculty> insertFaculty(Faculty faculty) {
         try {
@@ -108,22 +113,10 @@ public class FacultyService {
         }
 
         Faculty facultyDetails = result.getData();
-        Optional.ofNullable(faculty.getFirstName())
-                .ifPresent(facultyDetails::setFirstName);
-        Optional.ofNullable(faculty.getLastName())
-                .ifPresent(facultyDetails::setLastName);
-        Optional.ofNullable(faculty.getUserName())
-                .ifPresent(facultyDetails::setUserName);
-        Optional.ofNullable(faculty.getEmail())
-                .ifPresent(facultyDetails::setEmail);
-        Optional.ofNullable(faculty.getPhoneNumber())
-                .ifPresent(facultyDetails::setPhoneNumber);
-        Optional.ofNullable(faculty.getProfilePicture())
-                .ifPresent(facultyDetails::setProfilePicture);
-        Optional.ofNullable(faculty.getRole())
-                .ifPresent(facultyDetails::setRole);
-        Optional.ofNullable(faculty.getCampus())
-                .ifPresent(facultyDetails::setCampus);
+
+        facultyDetails = this.userService.getUserDetailsToUpdate(faculty,facultyDetails);
+        Optional.ofNullable(faculty.getCourse())
+                        .ifPresent(facultyDetails::setCourse);
         Optional.ofNullable(faculty.getFacultyCode())
                 .ifPresent(facultyDetails::setFacultyCode);
         Optional.ofNullable(faculty.getOfficeLocation())
@@ -160,5 +153,38 @@ public class FacultyService {
         }
     }
 
+    public Result<Faculty> removeFaculty(Long userId) {
+        try {
+            log.info("Removing faculty with id " + userId);
+            if (!this.facultyRepository.existsById(userId)) {
+                log.debug("No faculty with given id exist");
+                return Result.error("Faculty with id = " + userId + " does not exist");
+            }
+            this.facultyRepository.deleteById(userId);
+            log.info("Faculty with id = " + userId + " removed successfully");
+            return Result.success(null);
+        } catch (Exception e) {
+            log.debug("Got error while removing faculty");
+            log.error(e.getMessage());
+            return Result.error(e.getMessage());
+        }
+    }
+
+    public Result<Faculty> removeFaculties(String ids) {
+        try {
+            log.info("Removing faculties with ids " + ids);
+            List<Long> idList = Arrays.stream(ids.split(","))
+                    .map(Long::parseLong)
+                    .toList();
+            this.facultyRepository.deleteAllById(idList);
+            log.info("Faculties Removed successfully");
+            return Result.success(null);
+        } catch (Exception e) {
+            log.debug("Something went wrong while deleting the faculties with ids " + ids);
+            log.error(e.getMessage());
+            return Result.error(e.getMessage());
+        }
+
+    }
 
 }
