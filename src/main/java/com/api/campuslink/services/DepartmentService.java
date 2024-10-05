@@ -1,7 +1,7 @@
 package com.api.campuslink.services;
 
 import com.api.campuslink.dao.DepartmentRepository;
-import com.api.campuslink.entities.Department;
+import com.api.campuslink.models.entities.Department;
 import com.api.campuslink.helpers.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

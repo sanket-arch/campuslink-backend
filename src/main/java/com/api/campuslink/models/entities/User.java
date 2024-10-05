@@ -1,10 +1,13 @@
-package com.api.campuslink.entities;
+package com.api.campuslink.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "users", uniqueConstraints = {
@@ -14,7 +17,9 @@ import lombok.NoArgsConstructor;
 })
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
+@SuperBuilder
 public class User {
 
     @Id
@@ -28,10 +33,11 @@ public class User {
     @NotEmpty(message = "username cannot be empty")
     private String userName;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @NotEmpty(message = "password cannot be empty or null")
     private String password;
 
-    private long phoneNumber;
+    private Long phoneNumber;
 
     @NotNull(message = "email cannot be null")
     @NotEmpty(message = "email cannot be empty")
@@ -49,15 +55,4 @@ public class User {
     @JoinColumn(name = "campus_id")
     private Campus campus;
 
-    public User(String firstName, String lastName, String userName, String password, long phoneNumber, String email, byte[] profilePicture, Role role, Campus campus) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.userName = userName;
-        this.phoneNumber = phoneNumber;
-        this.email = email;
-        this.profilePicture = profilePicture;
-        this.role = role;
-        this.campus = campus;
-        this.password = password;
-    }
 }

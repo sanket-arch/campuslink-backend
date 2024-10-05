@@ -1,6 +1,5 @@
-package com.api.campuslink.entities;
+package com.api.campuslink.models.entities;
 
-import com.api.campuslink.entities.usertypes.Faculty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
