@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.api.campuslink.entities.Campus;
+import com.api.campuslink.models.entities.Campus;
 import com.api.campuslink.helpers.Result;
 import com.api.campuslink.services.CampusServices;
 

@@ -9,7 +9,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.api.campuslink.dao.RoleRepository;
-import com.api.campuslink.entities.Role;
+import com.api.campuslink.models.entities.Role;
 import com.api.campuslink.helpers.Result;
 
 @Service

@@ -1,6 +1,6 @@
 package com.api.campuslink.controllers.usertypes;
 
-import com.api.campuslink.entities.usertypes.Student;
+import com.api.campuslink.models.entities.usertypes.Student;
 import com.api.campuslink.helpers.Result;
 import com.api.campuslink.services.usertypes.StudentService;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,20 @@ public class StudentController {
     public ResponseEntity<?> addStudent(@RequestBody Student req) {
         log.info("Got request to add new student");
 
-        Student student = new Student(req.getFirstName(), req.getLastName(), req.getUserName(), req.getPassword(), req.getPhoneNumber(), req.getEmail(), req.getProfilePicture(), req.getRole(), req.getCampus(), req.getRegNo(), req.getPassingYear(), req.getCourse());
+        Student student = Student.builder()
+                .firstName(req.getFirstName())
+                .lastName(req.getLastName())
+                .userName(req.getUserName())
+                .password(req.getPassword())
+                .email(req.getEmail())
+                .phoneNumber(req.getPhoneNumber())
+                .profilePicture(req.getProfilePicture())
+                .role(req.getRole())
+                .campus(req.getCampus())
+                .regNo(req.getRegNo())
+                .course(req.getCourse())
+                .passingYear(req.getPassingYear())
+                .build();
         Result<Student> result = studentService.insertStudent(student);
 
         if (!result.isSuccess()) {
