@@ -27,18 +27,27 @@ public class SecurityConfig {
 
     @Autowired
     private JwtFilter jwtFilter;
+    @Autowired
+    CustomAccessDeniedHandler accessDeniedHandler;
+    @Autowired
+    CustomAuthenticationEntryPoint authenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
-                .csrf(customizer -> customizer.disable()) // disabling the csrf
+                .csrf(customizer -> customizer.disable()) // Disabling the csrf
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("/add/user/student", "/add/user", "/api/auth/login").permitAll() // only allow these route without authentication
-                        .anyRequest().authenticated()) // any request must be validated
-                .httpBasic(Customizer.withDefaults()) // allow to access api with basic auth (i.e. username and password)
+                        .requestMatchers("/api/auth/login", "/api/user/*/add").permitAll() // Only allow these route without authentication
+                        .requestMatchers("/api/user/*/delete", "/api/user/*/delete/multiple").hasRole("ADMIN") // Only allow admin to access mentioned endpoints
+                        .anyRequest().authenticated()) // Any request must be validated
+                .exceptionHandling(expHandler -> {
+                    expHandler.accessDeniedHandler(accessDeniedHandler)
+                            .authenticationEntryPoint(authenticationEntryPoint);
+                })
+                .httpBasic(Customizer.withDefaults()) // Allow to access api with basic auth (i.e. username and password)
                 .sessionManagement(session -> session.
-                        sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // each request must be stateless, and the security context must be handled per request
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // before  UsernamePasswordAuthenticationFilter applying jwtFilter
+                        sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Each request must be stateless, and the security context must be handled per request
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // Before  UsernamePasswordAuthenticationFilter applying jwtFilter
                 .build();
     }
 

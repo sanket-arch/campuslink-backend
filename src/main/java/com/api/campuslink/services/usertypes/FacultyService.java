@@ -13,6 +13,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -22,6 +23,7 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class FacultyService {
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
     @Autowired
     private FacultyRepository facultyRepository;
     @Autowired
@@ -41,7 +43,8 @@ public class FacultyService {
                 log.debug("Got error while saving faculty");
                 return Result.error(facultyDetails.getError());
             }
-
+            faculty = facultyDetails.getData();
+            faculty.setPassword(encoder.encode(faculty.getPassword()));
             Faculty savedFaculty = this.facultyRepository.save(faculty);
             log.info("Faculty with id" + savedFaculty.getUserId() + " saved successfully");
             return Result.success(savedFaculty);
