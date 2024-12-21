@@ -16,7 +16,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
-        response.getWriter().write("{\"message\": \"Unauthorized: You need to log in to access this resource.\"}");
+        response.getWriter().write("{\"message\": \"Unauthorized: " + authException.getMessage() + "\"}");
         response.getWriter().flush();
     }
 }
