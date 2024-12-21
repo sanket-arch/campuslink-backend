@@ -37,8 +37,8 @@ public class SecurityConfig {
         return httpSecurity
                 .csrf(customizer -> customizer.disable()) // Disabling the csrf
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("/api/auth/login", "/api/user/*/add").permitAll() // Only allow these route without authentication
-                        .requestMatchers("/api/user/*/delete", "/api/user/*/delete/multiple").hasRole("ADMIN") // Only allow admin to access mentioned endpoints
+                        .requestMatchers("/api/auth/login","/api/user/add" ,"/api/user/*/add").permitAll() // Only allow these route without authentication
+                        .requestMatchers("/api/user/delete","/api/user/*/delete", "/api/user/*/delete/multiple").hasAnyAuthority("ROLE_ADMIN") // Only allow admin to access mentioned endpoints
                         .anyRequest().authenticated()) // Any request must be validated
                 .exceptionHandling(expHandler -> {
                     expHandler.accessDeniedHandler(accessDeniedHandler)

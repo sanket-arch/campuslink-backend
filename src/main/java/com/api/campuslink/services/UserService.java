@@ -7,7 +7,6 @@ import com.api.campuslink.models.entities.Campus;
 import com.api.campuslink.models.entities.Role;
 import com.api.campuslink.models.entities.User;
 import com.api.campuslink.helpers.Result;
-import com.api.campuslink.models.entities.usertypes.Faculty;
 import com.api.campuslink.services.security.JwtService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.validation.ConstraintViolation;
