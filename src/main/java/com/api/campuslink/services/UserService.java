@@ -3,10 +3,10 @@ package com.api.campuslink.services;
 import com.api.campuslink.dao.CampusRepository;
 import com.api.campuslink.dao.RoleRepository;
 import com.api.campuslink.dao.UserRespository;
+import com.api.campuslink.helpers.Result;
 import com.api.campuslink.models.entities.Campus;
 import com.api.campuslink.models.entities.Role;
 import com.api.campuslink.models.entities.User;
-import com.api.campuslink.helpers.Result;
 import com.api.campuslink.services.security.JwtService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.validation.ConstraintViolation;
@@ -127,11 +127,9 @@ public class UserService {
             if (!this.userRespository.existsById(id)) {
                 return Result.error("The user with given id " + id + " does not exist.");
             }
-            Result<User> result = this.getUserOtherDetail(user);
-            if (!result.isSuccess()) {
-                return result;
-            }
-            user = result.getData();
+            User existingUser = this.userRespository.findById(id).get();
+            user = this.getUserDetailsToUpdate(user,existingUser);
+
             User updatedUser = this.userRespository.save(user);
             return Result.success(updatedUser);
 
@@ -141,7 +139,7 @@ public class UserService {
         }
     }
 
-    public <T extends User>  T getUserDetailsToUpdate(T user, T userDetails){
+    protected  <T extends User>  T getUserDetailsToUpdate(T user, T userDetails){
         Optional.ofNullable(user.getFirstName())
                 .ifPresent(userDetails::setFirstName);
         Optional.ofNullable(user.getLastName())
@@ -154,8 +152,8 @@ public class UserService {
                 .ifPresent(userDetails::setPhoneNumber);
         Optional.ofNullable(user.getProfilePicture())
                 .ifPresent(userDetails::setProfilePicture);
-        Optional.ofNullable(user.getRole())
-                .ifPresent(userDetails::setRole);
+        Optional.ofNullable(user.getRoles())
+                .ifPresent(userDetails::setRoles);
         Optional.ofNullable(user.getCampus())
                 .ifPresent(userDetails::setCampus);
 
@@ -187,22 +185,30 @@ public class UserService {
         }
     }
 
-    private Result<User> getUserOtherDetail(@NotNull User user) {
+    protected Result<User> getUserOtherDetail(@NotNull User user) {
 
-        int roleID = user.getRole().getId();
+        Set<Role> roleAssigned = new HashSet<>();
+        // Ids of role will be passed in payload
+        Set<Role> rolesIDs = user.getRoles();
+        log.info("Roles assigned IDs are :  " + rolesIDs.toString());
         int campusID = user.getCampus().getId();
 
-        if (!roleRepository.existsById(roleID)) {
-            log.debug("Role with id " + roleID + " does not exist");
-            return Result.error("Role with id " + roleID + " does not exist");
+        for (Role role : rolesIDs) {
+            int roleID = role.getId();
+            if (!roleRepository.existsById(roleID)) {
+                log.debug("Role with id " + roleID + " does not exist");
+                return Result.error("Role with id " + roleID + " does not exist");
+            }
+            Role userRole = roleRepository.findById(roleID);
+            roleAssigned.add(userRole);
         }
+
         if (!campusRepository.existsById(campusID)) {
             log.debug("Campus with id " + campusID + "does not exist");
             return Result.error("Campus with id " + campusID + " does not exist");
         }
 
-        Role role = roleRepository.findById(roleID);
-        user.setRole(role);
+        user.setRoles(roleAssigned);
         Campus campus = campusRepository.findById(campusID);
         user.setCampus(campus);
 
