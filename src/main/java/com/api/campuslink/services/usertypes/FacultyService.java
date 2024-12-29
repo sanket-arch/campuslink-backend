@@ -6,8 +6,8 @@ import com.api.campuslink.dao.usertypes.FacultyRepository;
 import com.api.campuslink.helpers.Result;
 import com.api.campuslink.models.entities.Course;
 import com.api.campuslink.models.entities.Department;
+import com.api.campuslink.models.entities.User;
 import com.api.campuslink.models.entities.usertypes.Faculty;
-import com.api.campuslink.models.entities.usertypes.Student;
 import com.api.campuslink.services.UserService;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ import java.util.Optional;
 
 @Service
 @Slf4j
-public class FacultyService {
+public class FacultyService extends UserService {
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
     @Autowired
     private FacultyRepository facultyRepository;
@@ -30,9 +30,6 @@ public class FacultyService {
     private CourseRepository courseRepository;
     @Autowired
     private DepartmentRepository departmentRepository;
-
-    @Autowired
-    private UserService userService;
 
     public Result<Faculty> insertFaculty(Faculty faculty) {
         try {
@@ -117,9 +114,9 @@ public class FacultyService {
 
         Faculty facultyDetails = result.getData();
 
-        facultyDetails = this.userService.getUserDetailsToUpdate(faculty,facultyDetails);
+        facultyDetails = this.getUserDetailsToUpdate(faculty, facultyDetails);
         Optional.ofNullable(faculty.getCourse())
-                        .ifPresent(facultyDetails::setCourse);
+                .ifPresent(facultyDetails::setCourse);
         Optional.ofNullable(faculty.getFacultyCode())
                 .ifPresent(facultyDetails::setFacultyCode);
         Optional.ofNullable(faculty.getOfficeLocation())
@@ -135,6 +132,12 @@ public class FacultyService {
             int courseID = faculty.getCourse().getId();
             int departmentID = faculty.getDepartment().getId();
 
+            Result<User> userDetails = getUserOtherDetail(faculty);
+
+            if (!userDetails.isSuccess()) {
+                return Result.error(userDetails.getError());
+            }
+
             if (!courseRepository.existsById(courseID)) {
                 return Result.error("Cannot find the course with given id = " + courseID);
             }
@@ -148,7 +151,8 @@ public class FacultyService {
 
             faculty.setCourse(course);
             faculty.setDepartment(department.get());
-
+            faculty.setRoles(userDetails.getData().getRoles());
+            faculty.setCampus(userDetails.getData().getCampus());
             return Result.success(faculty);
 
         } catch (Exception e) {
