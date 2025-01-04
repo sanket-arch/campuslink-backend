@@ -1,6 +1,9 @@
 # Campus Link
 
 Campus Link is a Spring Boot application that connects students across various courses and campuses. It allows students to post and view reviews on hostels, professors, and mess facilities, as well as to post and view queries. Additionally, it offers a marketplace for buying and selling old belongings and keeps students updated on campus activities.
+
+### [Mindmap](https://www.mindmeister.com/app/map/3460790403?source=template)
+
 ## Table of Contents
 
 - [Features](#features)

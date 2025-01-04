@@ -2,6 +2,7 @@ package com.api.campuslink.security.filters;
 
 import com.api.campuslink.services.security.JwtService;
 import com.api.campuslink.services.security.UserDetailsServiceImpl;
+import com.api.campuslink.utils.InvalidJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,14 +28,13 @@ public class JwtFilter extends OncePerRequestFilter {
     ApplicationContext applicationContext;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException, InvalidJwtException {
 
-        String header = request.getHeader("Authorization");
-        String token = null;
+
+        String token = jwtService.getTokenFromRequest(request);
         String username = null;
 
-        if (header != null && header.startsWith("Bearer ")) {
-            token = header.substring(7);
+        if (token != null) {
             username = jwtService.getUsername(token);
         }
 
@@ -42,14 +42,19 @@ public class JwtFilter extends OncePerRequestFilter {
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = applicationContext.getBean(UserDetailsServiceImpl.class).loadUserByUsername(username);
 
-            if (jwtService.validateToken(token, userDetails)) {
+            if (jwtService.validateToken(token, userDetails) && !jwtService.isTokenBlacklisted(token)) {
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+            } else {
+                throw new InvalidJwtException("User is not authorized to perform action.");
             }
         }
 
         filterChain.doFilter(request, response);
+
+
     }
+
 }

@@ -20,6 +20,7 @@ public class StudentController {
 
     @PostMapping("/add")
     public ResponseEntity<?> addStudent(@RequestBody Student req) {
+        //@TODO Need to implement code for profile picture upload
         log.info("Got request to add new student");
 
         Student student = Student.builder()
@@ -30,7 +31,7 @@ public class StudentController {
                 .email(req.getEmail())
                 .phoneNumber(req.getPhoneNumber())
                 .profilePicture(req.getProfilePicture())
-                .role(req.getRole())
+                .roles(req.getRoles())
                 .campus(req.getCampus())
                 .regNo(req.getRegNo())
                 .course(req.getCourse())

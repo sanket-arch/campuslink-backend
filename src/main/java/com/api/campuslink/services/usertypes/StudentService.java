@@ -1,14 +1,10 @@
 package com.api.campuslink.services.usertypes;
 
-import com.api.campuslink.dao.CampusRepository;
 import com.api.campuslink.dao.CourseRepository;
-import com.api.campuslink.dao.RoleRepository;
 import com.api.campuslink.dao.usertypes.StudentRepository;
 import com.api.campuslink.helpers.Result;
-import com.api.campuslink.models.entities.Campus;
 import com.api.campuslink.models.entities.Course;
-import com.api.campuslink.models.entities.Role;
-import com.api.campuslink.models.entities.usertypes.Faculty;
+import com.api.campuslink.models.entities.User;
 import com.api.campuslink.models.entities.usertypes.Student;
 import com.api.campuslink.services.UserService;
 import jakarta.validation.ConstraintViolation;
@@ -28,20 +24,12 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class StudentService {
+public class StudentService extends UserService {
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
     @Autowired
     StudentRepository studentRepository;
     @Autowired
     CourseRepository courseRepository;
-    @Autowired
-    RoleRepository roleRepository;
-
-    @Autowired
-    CampusRepository campusRepository;
-
-    @Autowired
-    UserService userService;
 
     public Result<Student> insertStudent(Student student) {
         try {
@@ -205,28 +193,21 @@ public class StudentService {
     private Result<Student> getStudentOtherDetail(@NotNull Student student) {
 
         int courseID = student.getCourse().getId();
-        int roleID = student.getRole().getId();
-        int campusID = student.getCampus().getId();
 
+        Result<User> userDetails = this.getUserOtherDetail(student);
+
+        if (!userDetails.isSuccess()) {
+            return Result.error(userDetails.getError());
+        }
         if (!courseRepository.existsById(courseID)) {
             log.debug("Course with id " + courseID + " does not exist");
             return Result.error("Course with id " + courseID + " does not exist");
         }
-        if (!roleRepository.existsById(roleID)) {
-            log.debug("Role with id " + roleID + "does not exist");
-            return Result.error("Role with id " + roleID + " does not exist");
-        }
-        if (!campusRepository.existsById(campusID)) {
-            log.debug("Campus with id " + campusID + "does not exist");
-            return Result.error("Campus with id " + campusID + " does not exist");
-        }
 
         Course course = courseRepository.findById(courseID);
         student.setCourse(course);
-        Role role = roleRepository.findById(roleID);
-        student.setRole(role);
-        Campus campus = campusRepository.findById(campusID);
-        student.setCampus(campus);
+        student.setRoles(userDetails.getData().getRoles());
+        student.setCampus(userDetails.getData().getCampus());
 
         return Result.success(student);
     }
@@ -240,7 +221,7 @@ public class StudentService {
         }
 
         Student studentDetails = result.getData();
-        studentDetails = this.userService.getUserDetailsToUpdate(student, studentDetails);
+        studentDetails = this.getUserDetailsToUpdate(student, studentDetails);
         Optional.ofNullable(student.getPassingYear())
                 .ifPresent(studentDetails::setPassingYear);
         Optional.ofNullable(student.getCourse())

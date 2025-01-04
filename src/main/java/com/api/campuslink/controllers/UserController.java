@@ -31,7 +31,7 @@ public class UserController {
                 .email(req.getEmail())
                 .phoneNumber(req.getPhoneNumber())
                 .profilePicture(req.getProfilePicture())
-                .role(req.getRole())
+                .roles(req.getRoles())
                 .campus(req.getCampus())
                 .build();
 
