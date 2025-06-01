@@ -163,7 +163,7 @@ Authorization: Bearer your_jwt_token
   "userName": "Sanket45",
   "profilePicture": "",
   "phoneNumber": 8709687325,
-  "email": "megha.shree@vitstudent@ac.in",
+  "email": "sanket.kumar@vitstudent@ac.in",
   "regNo":"22MCA086",
   "passingYear":"2024",
   "course":{
