@@ -2,6 +2,7 @@ package com.api.campuslink.models.entities;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
         @UniqueConstraint(columnNames = {"eventCode"})
 })
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class EventType {

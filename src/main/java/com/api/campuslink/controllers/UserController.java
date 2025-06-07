@@ -1,5 +1,6 @@
 package com.api.campuslink.controllers;
 
+import com.api.campuslink.models.dto.UserDTO;
 import com.api.campuslink.models.entities.User;
 import com.api.campuslink.helpers.Result;
 import com.api.campuslink.services.UserService;
@@ -22,27 +23,14 @@ public class UserController {
     UserService userService;
 
     @PostMapping("/add")
-    public ResponseEntity<?> addUser(@RequestBody User req) {
-        User user = User.builder()
-                .firstName(req.getFirstName())
-                .lastName(req.getLastName())
-                .userName(req.getUserName())
-                .password(req.getPassword())
-                .email(req.getEmail())
-                .phoneNumber(req.getPhoneNumber())
-                .profilePicture(req.getProfilePicture())
-                .roles(req.getRoles())
-                .campus(req.getCampus())
-                .build();
+    public ResponseEntity<?> addUser(@RequestBody UserDTO req) {
 
-        Result<User> response = this.userService.insertUser(user);
+        Result<User> response = this.userService.insertUser(req);
 
         if (response.isSuccess()) {
-            return new ResponseEntity<>("User saved successfully with id " + response.getData().getUserId(),
-                    HttpStatus.OK);
+            return new ResponseEntity<>("User saved successfully with id " + response.getData().getUserName(), HttpStatus.OK);
         } else {
-            return new ResponseEntity<>("Unable to save due to " + response.getError(),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Unable to save due to " + response.getError(), response.getHttpStatus());
         }
 
     }
