@@ -1,5 +1,6 @@
 package com.api.campuslink.services.security;
 
+import com.api.campuslink.models.entities.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -34,14 +35,16 @@ public class JwtService {
         }
     }
 
-    public String generateToken(String username) {
+    public String generateToken(User username) {
         try {
             Map<String, Object> claims = new HashMap<>();
-
+            claims.put("roles", username.getRoles());
+            claims.put("campus", username.getCampus().getCampusName());
+            claims.put("userName", username.getUserName());
             return Jwts.builder()
                     .claims()
                     .add(claims)
-                    .subject(username)
+                    .subject(username.getUserName())
                     .issuedAt(new Date(System.currentTimeMillis()))
                     .expiration(new Date(System.currentTimeMillis() + 60 * 30 * 1000))
                     .and()

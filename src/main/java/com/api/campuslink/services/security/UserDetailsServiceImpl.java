@@ -1,6 +1,6 @@
 package com.api.campuslink.services.security;
 
-import com.api.campuslink.dao.UserRespository;
+import com.api.campuslink.dao.UserRepository;
 import com.api.campuslink.models.entities.User;
 import com.api.campuslink.models.entities.security.UserPrincipal;
 import lombok.extern.slf4j.Slf4j;
@@ -14,11 +14,11 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class UserDetailsServiceImpl implements UserDetailsService {
     @Autowired
-    UserRespository userRespository;
+    UserRepository userRepository;
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         log.info("Fetching user details from DB for authentication");
-        User user = userRespository.findByUserName(username);
+        User user = userRepository.findByUserName(username);
 
         if(user== null){
             log.error("User not found");
