@@ -2,6 +2,7 @@ package com.api.campuslink.security;
 
 import com.api.campuslink.security.filters.JwtFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,6 +19,9 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -32,12 +36,16 @@ public class SecurityConfig {
     @Autowired
     CustomAuthenticationEntryPoint authenticationEntryPoint;
 
+    @Value("${campusLink.cors.allowed-origins}")
+    private String allowedOrigins;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .csrf(customizer -> customizer.disable()) // Disabling the csrf
+                .cors(Customizer.withDefaults()) // Enable CORS with default settings
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("/api/auth/login","/api/user/add" ,"/api/user/*/add").permitAll() // Only allow these route without authentication
+                        .requestMatchers("/api/auth/login","/api/user/add" ,"/api/user/*/add","/api/role/all").permitAll() // Only allow these route without authentication
                         .requestMatchers("/api/user/delete","/api/user/*/delete", "/api/user/*/delete/multiple").hasAnyAuthority("ROLE_ADMIN") // Only allow admin to access mentioned endpoints
                         .anyRequest().authenticated()) // Any request must be validated
                 .exceptionHandling(expHandler -> {
@@ -49,6 +57,20 @@ public class SecurityConfig {
                         sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Each request must be stateless, and the security context must be handled per request
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // Before  UsernamePasswordAuthenticationFilter applying jwtFilter
                 .build();
+    }
+
+    // CORS configuration to allow requests from frontend
+    @Bean
+    public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
+        org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
+        List<String> origins = Arrays.asList(allowedOrigins.split(","));
+        configuration.setAllowedOrigins(origins);
+        configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(java.util.List.of("*"));
+        configuration.setAllowCredentials(true);
+        org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     // Creating our own authentication provider

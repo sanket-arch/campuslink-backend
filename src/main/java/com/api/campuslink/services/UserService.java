@@ -10,7 +10,6 @@ import com.api.campuslink.models.entities.Campus;
 import com.api.campuslink.models.entities.Role;
 import com.api.campuslink.models.entities.User;
 import com.api.campuslink.services.security.JwtService;
-import com.cloudinary.Cloudinary;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -25,7 +24,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.*;
@@ -73,8 +71,7 @@ public class UserService {
             log.info("User with username {} exists, proceeding to authentication", username);
 
             // Using authenticationManager from the SecurityConfig class
-            Authentication authentication =
-                    authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
             if (!authentication.isAuthenticated()) {
                 log.debug("Unable to verify the user");
                 return Result.error("Unable to verify the user");

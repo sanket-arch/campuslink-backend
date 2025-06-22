@@ -6,7 +6,7 @@ import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
 
-public interface EntityTypeRepository extends CrudRepository<EventType, Long> {
+public interface EventTypeRepository extends CrudRepository<EventType, Long> {
 
     public List<EventType> findAll(Sort sort);
 
