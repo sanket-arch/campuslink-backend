@@ -1,12 +1,15 @@
 package com.api.campuslink.models.entities.usertypes;
 
 import com.api.campuslink.models.entities.Course;
+import com.api.campuslink.models.entities.Event;
 import com.api.campuslink.models.entities.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+
+import java.util.Set;
 
 
 @Entity
@@ -29,5 +32,8 @@ public class Student extends User {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "course_id")
     private Course course;
+
+    @ManyToMany(mappedBy = "interestedStudents")
+    private Set<Event> interestedEvents;
 
 }
