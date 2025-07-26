@@ -55,7 +55,7 @@ public class UserController {
     @GetMapping
     public ResponseEntity<?> getUserById(@RequestParam long userId) {
 
-        Result<User> response = this.userService.getUserbyId(userId);
+        Result<User> response = this.userService.getUserid(userId);
 
         if (!response.isSuccess()) {
             return new ResponseEntity<>(response.getError(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -104,5 +104,11 @@ public class UserController {
 
         return new ResponseEntity<>("users with ids " + ids + " removed succesfully", HttpStatus.OK);
 
+    }
+
+    @GetMapping("/exists")
+    public ResponseEntity<Boolean> checkUsernameExists(@RequestParam String username) {
+        Result<Boolean> isExist = userService.checkUserExistByUserName(username);
+        return new ResponseEntity<>(isExist.getData(), HttpStatus.OK);
     }
 }

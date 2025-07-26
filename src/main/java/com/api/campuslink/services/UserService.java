@@ -25,7 +25,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -155,7 +154,7 @@ public class UserService {
 
     }
 
-    public Result<User> getUserbyId(long userId) {
+    public Result<User> getUserid(long userId) {
         try {
             Optional<User> userOptional = this.userRepository.findById(userId);
             return userOptional.map(Result::success).orElseGet(() -> Result.success(null));
@@ -301,5 +300,21 @@ public class UserService {
         user.setCampus(campus);
 
         return Result.success(user);
+    }
+
+    public Result<Boolean> checkUserExistByUserName(String username) {
+        try {
+            log.info("Checking if user with username {} exists", username);
+            User user = userRepository.findByUserName(username);
+            if (user == null) {
+                log.info("User with username {} does not exist", username);
+                return Result.success(false);
+            }
+            log.info("User with username {} exists", username);
+            return Result.success(true);
+        } catch (Exception e) {
+            log.error("Error while checking user existence: {}", e.getMessage());
+            return Result.error(e.getMessage());
+        }
     }
 }
