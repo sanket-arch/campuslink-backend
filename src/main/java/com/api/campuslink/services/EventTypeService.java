@@ -4,7 +4,7 @@ import com.api.campuslink.dao.EventTypeRepository;
 import com.api.campuslink.helpers.Result;
 import com.api.campuslink.models.dto.EventTypeRequestDTO;
 import com.api.campuslink.models.entities.EventType;
-import com.api.campuslink.utils.EventTypeComprator;
+import com.api.campuslink.helpers.EventTypeComprator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;

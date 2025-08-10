@@ -13,7 +13,7 @@ import java.util.Objects;
 public class Configs {
 
     @Autowired
-    Environment environment;
+    private Environment environment;
 
     @Bean
     public Cloudinary cloudinaryConfig() {
