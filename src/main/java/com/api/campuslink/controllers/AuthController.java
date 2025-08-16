@@ -1,6 +1,7 @@
 package com.api.campuslink.controllers;
 
 import com.api.campuslink.helpers.Result;
+import com.api.campuslink.services.AuthService;
 import com.api.campuslink.services.UserService;
 import com.api.campuslink.services.security.JwtService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -9,10 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -24,10 +22,13 @@ public class AuthController {
     @Autowired
     JwtService jwtService;
 
+    @Autowired
+    private AuthService authService;
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody ObjectNode req) {
         log.info("Got request for logging user in");
-        Result<Object> result = this.userService.verify(req);
+        Result<Object> result = this.authService.verify(req);
 
         if (!result.isSuccess()) {
             log.debug("Unable to verify the user");

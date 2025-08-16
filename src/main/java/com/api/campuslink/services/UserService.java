@@ -19,9 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -40,59 +37,6 @@ public class UserService {
 
     @Autowired
     private CampusRepository campusRepository;
-
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private JwtService jwtService;
-
-
-    public Result<Object> verify(ObjectNode credentials) {
-        try {
-            log.info("Got request to verify the user");
-            String username = credentials.get("username").asText();
-            String password = credentials.get("password").asText();
-
-            if (username == null || username.isEmpty() || password == null || password.isEmpty()) {
-                log.debug("Username or password is empty");
-                return Result.error("Username or password is empty");
-            }
-            log.info("Validating user credentials");
-
-            User userDetails = userRepository.findByUserName(username);
-
-            if(userDetails == null) {
-                log.error("User with username {} does not exist", username);
-                return Result.error("User with username " + username + " does not exist");
-            }
-
-            log.info("User with username {} exists, proceeding to authentication", username);
-
-            // Using authenticationManager from the SecurityConfig class
-            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
-            if (!authentication.isAuthenticated()) {
-                log.debug("Unable to verify the user");
-                return Result.error("Unable to verify the user");
-            }
-            log.info("User validated successfully");
-
-            log.info("Generating token");
-            String jwtToken = this.jwtService.generateToken(userDetails);
-            log.info("Token generated successfully");
-
-            Map<String, String> responseMap = new HashMap<>();
-            responseMap.put("access_token", jwtToken);
-            responseMap.put("validity", "30 min");
-
-            return Result.success(responseMap);
-        } catch (Exception e) {
-            log.info("Unable to verify the user");
-            log.info(e.getMessage());
-            return Result.error(e.getMessage());
-        }
-
-    }
 
     public Result<User> insertUser(UserDTO userDTO) {
         try {
