@@ -1,14 +1,15 @@
 package com.api.campuslink.models.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.web.multipart.MultipartFile;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
-@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserDTO {
     private String firstName;
