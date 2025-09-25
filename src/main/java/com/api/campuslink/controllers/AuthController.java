@@ -6,11 +6,15 @@ import com.api.campuslink.services.UserService;
 import com.api.campuslink.services.security.JwtService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Cookie;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -26,7 +30,7 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody ObjectNode req) {
+    public ResponseEntity<?> login(@RequestBody ObjectNode req, HttpServletResponse response) {
         log.info("Got request for logging user in");
         Result<Object> result = this.authService.verify(req);
 
@@ -35,6 +39,19 @@ public class AuthController {
             return new ResponseEntity<>(result.getError(), HttpStatus.UNAUTHORIZED);
         }
         log.info("User verified successfully");
+        // Set refresh_token cookie only with the token value
+        if (result.getData() instanceof Map) {
+            Map<?, ?> dataMap = (Map<?, ?>) result.getData();
+            Object refreshTokenObj = dataMap.get("refresh_token");
+            if (refreshTokenObj != null) {
+                Cookie cookie = new Cookie("backend_refresh_token", refreshTokenObj.toString());
+                cookie.setHttpOnly(true);
+                cookie.setPath("/");
+                cookie.setSecure(false);
+                cookie.setMaxAge(7 * 24 * 60 * 60); // 1 week
+                response.addCookie(cookie);
+            }
+        }
         return ResponseEntity.ok(result.getData());
     }
 
@@ -52,4 +69,16 @@ public class AuthController {
         log.info("Failed to log out user");
         return new ResponseEntity<>("Unable to log out user", HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @GetMapping("/validate")
+    public ResponseEntity<?> validateToken(HttpServletRequest request) {
+        log.info("Got request to validate the token");
+        String token = this.jwtService.getTokenFromRequest(request);
+        Result<Object> result = this.authService.isTokenValid(token);
+        if(!result.isSuccess()){
+            return new ResponseEntity<>(result.getError(), HttpStatus.UNAUTHORIZED);
+        }
+        return new ResponseEntity<>(result.getData(),HttpStatus.OK);
+    }
+
 }
