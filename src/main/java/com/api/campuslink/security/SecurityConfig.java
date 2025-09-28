@@ -44,7 +44,7 @@ public class SecurityConfig {
                 .csrf(customizer -> customizer.disable()) // Disabling the csrf
                 .cors(Customizer.withDefaults()) // Enable CORS with default settings
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("/api/auth/login","/api/user/add" ,"/api/user/*/add","/api/role/all", "/api/campus/all", "/api/user/exists").permitAll() // Only allow these route without authentication
+                        .requestMatchers("/api/auth/login", "/api/auth/redirect","/api/user/add" ,"/api/user/*/add","/api/role/all", "/api/campus/all", "/api/user/exists").permitAll() // Only allow these route without authentication
                         .requestMatchers("/api/user/delete","/api/user/*/delete", "/api/user/*/delete/multiple").hasAnyAuthority("ROLE_ADMIN") // Only allow admin to access mentioned endpoints
                         .anyRequest().authenticated()) // Any request must be validated
                 .exceptionHandling(expHandler -> {
