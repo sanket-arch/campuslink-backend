@@ -1,12 +1,16 @@
 package com.api.campuslink.services.security;
 
+import com.api.campuslink.exceptions.InternalProcessingException;
 import com.api.campuslink.models.entities.User;
+import com.api.campuslink.services.RedisService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -62,6 +66,30 @@ public class JwtService {
 
     }
 
+    public String generateRefreshToken(User user) {
+        try {
+            Map<String, Object> claims = new HashMap<>();
+            claims.put("userName", user.getUserName());
+            return Jwts.builder()
+                    .claims()
+                    .add(claims)
+                    .subject(user.getUserName())
+                    .issuedAt(new Date(System.currentTimeMillis()))
+                    .expiration(new Date(System.currentTimeMillis() + 7L * 24 * 60 * 60 * 1000)) // 7 days
+                    .and()
+                    .signWith(getKey())
+                    .compact();
+        } catch (SecurityException e) {
+            log.debug("Invalid JWT signature for refresh token");
+            log.error(e.getMessage());
+            throw new RuntimeException("Invalid JWT signature for refresh token", e);
+        } catch (Exception e) {
+            log.debug("Error generating refresh JWT token");
+            log.error(e.getMessage());
+            throw new RuntimeException("Error generating refresh JWT token", e);
+        }
+    }
+
     public String getTokenFromRequest(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
         String token = null;
@@ -101,7 +129,12 @@ public class JwtService {
         return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
-    private boolean isTokenExpired(String token) {
+    public String extractUserName(String token) {
+        Claims claims = Jwts.parser().verifyWith(getKey()).build().parseSignedClaims(token).getPayload();
+        return claims.getSubject();
+    }
+
+    public boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
 

@@ -1,4 +1,4 @@
-package com.api.campuslink.utils;
+package com.api.campuslink.helpers;
 
 import com.api.campuslink.models.entities.EventType;
 

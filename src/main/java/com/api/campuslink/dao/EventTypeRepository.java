@@ -9,5 +9,6 @@ import java.util.List;
 public interface EventTypeRepository extends CrudRepository<EventType, Long> {
 
     public List<EventType> findAll(Sort sort);
+    public EventType findByEventCode(String eventCode);
 
 }
