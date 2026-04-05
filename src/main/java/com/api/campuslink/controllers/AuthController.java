@@ -11,6 +11,7 @@ import jakarta.servlet.http.Cookie;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -81,4 +82,50 @@ public class AuthController {
         return new ResponseEntity<>(result.getData(),HttpStatus.OK);
     }
 
+    @GetMapping("/authenticate")
+    public ResponseEntity<?> authenticate(HttpServletResponse response, @RequestParam String username, @RequestParam String password, @RequestParam String successUrl, @RequestParam String failureUrl) {
+        log.info("Got request to authenticate the user");
+        Result<Object> result = this.authService.authenticate(username, password, successUrl, failureUrl);
+        Cookie cookie = null;
+        if (!result.isSuccess()) {
+            log.debug("Unable to verify the user");
+            return ResponseEntity.status(HttpStatus.FOUND) // 302 redirect;
+                    .header("Location", failureUrl)
+                    .build();
+        }
+        log.info("User verified successfully");
+        if (result.getData() instanceof Map) {
+            Map<?, ?> dataMap = (Map<?, ?>) result.getData();
+            Object refreshTokenObj = dataMap.get("refresh_token");
+            if (refreshTokenObj != null) {
+                cookie = new Cookie("backend_refresh_token", refreshTokenObj.toString());
+                cookie.setHttpOnly(true);
+                cookie.setPath("/");
+                cookie.setSecure(false);
+                cookie.setMaxAge(7 * 24 * 60 * 60); // 1 week
+                response.addCookie(cookie);
+            }
+        }
+
+        return ResponseEntity.status(HttpStatus.FOUND) // 302 redirect
+                .header("Set-Cookie", cookie.toString())
+                .header("Location", successUrl)
+                .build();
+    }
+
+    @GetMapping("/redirect")
+    public ResponseEntity<?> redirect(@RequestParam String url) {
+        ResponseCookie cookie = ResponseCookie.from("jwt", "something")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(3600)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.FOUND) // 302 redirect
+                .header("Set-Cookie", cookie.toString())
+                .header("Location", url)
+                .build();
+    }
+ 
 }

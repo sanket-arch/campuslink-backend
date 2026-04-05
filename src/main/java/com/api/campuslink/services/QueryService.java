@@ -10,8 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDate;
 
 @Slf4j
 @Service
@@ -21,7 +20,8 @@ public class QueryService {
     private QueryRepository queryRepository;
 
     public Result<String> addQuery(QueryDTO queryDto) {
-        log.info("Got request for adding query: {}", queryDto.getQueryId());
+        log.info("Got request for adding query: {}", queryDto);
+
         Query query = buildQuery(queryDto);
         try {
             Query createdQuery = queryRepository.save(query);
@@ -56,13 +56,14 @@ public class QueryService {
     public Query buildQuery(QueryDTO queryDto) {
         Query query = new Query();
         query.setQueryId(queryDto.getQueryId());
-        query.setQueryType(queryDto.getQueryType().getValue());
+        query.setQueryType(queryDto.getQueryType());
         query.setQueryTitle(queryDto.getQueryTitle());
         query.setQueryDescription(queryDto.getQueryDescription());
         query.setQueryStatus(queryDto.getQueryStatus());
         query.setQueryPriority(queryDto.getQueryPriority());
         query.setPostedBy(queryDto.getPostedBy());
-        query.setPostedOn(queryDto.getPostedOn());
+        query.setPostedOn(LocalDate.now());
+        query.setAnswers(null);
         return query;
     }
 }

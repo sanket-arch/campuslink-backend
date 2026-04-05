@@ -1,5 +1,7 @@
 package com.api.campuslink.utils;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 @Getter
@@ -17,6 +19,12 @@ public enum QueryTypeEnum {
         this.value = value;
     }
 
+    @JsonValue
+    public String getValue() {
+        return value;
+    }
+
+    @JsonCreator
     public static QueryTypeEnum fromValue(String value) {
         for (QueryTypeEnum type : QueryTypeEnum.values()) {
             if (type.value.equalsIgnoreCase(value)) {

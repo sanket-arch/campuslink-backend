@@ -102,6 +102,21 @@ public class AuthService {
         }
     }
 
+    public Result<Object> authenticate(String username, String password, String successUrl, String failureUrl) {
+        log.info("Got request to authenticate the user");
+        ObjectNode credentials = com.fasterxml.jackson.databind.node.JsonNodeFactory.instance.objectNode();
+        credentials.put("username", username);
+        credentials.put("password", password);
+       Result<Object> result = this.verify(credentials);
+
+       if(!result.isSuccess()){
+           log.info("User authentication failed, redirecting to failure URL");
+           return result;
+       }
+       log.info("User authenticated successfully, redirecting to success URL");
+       return result;
+    }
+
     private Map<String, String> createTokenResponse(User userDetails) {
         String username = userDetails.getUserName();
         log.info("Generating token");
@@ -134,6 +149,32 @@ public class AuthService {
         if (jwtService.isTokenExpired(token)) {
             log.debug("Refresh token is expired for user: {}", user.getUserName());
             throw new InternalProcessingException("Refresh token is expired", HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+    public Result<Object> isTokenValid(String token) {
+        try {
+            String username = jwtService.getUsername(token);
+            if (username == null) {
+                log.error("Invalid token: username is null");
+                return Result.error("Invalid token: username is null");
+            }
+
+            User userDetails = userRepository.findByUserName(username);
+            if (userDetails == null) {
+                log.error("User with username {} does not exist", username);
+                return Result.error("User with username " + username + " does not exist");
+            }
+
+            if (jwtService.isTokenExpired(token) || jwtService.isTokenBlacklisted(token)) {
+                log.error("Token is expired or blacklisted for user: {}", username);
+                return Result.error("Token is expired or blacklisted");
+            }
+
+            return Result.success("Token is valid");
+        } catch (Exception e) {
+            log.error("Error validating token: {}", e.getMessage());
+            return Result.error("Error validating token: " + e.getMessage());
         }
     }
 }
