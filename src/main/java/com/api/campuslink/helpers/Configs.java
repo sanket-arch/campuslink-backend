@@ -1,29 +1,32 @@
 package com.api.campuslink.helpers;
 
 import com.cloudinary.Cloudinary;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 
 import java.util.Map;
-import java.util.Objects;
 
 @Configuration
 public class Configs {
 
-    @Autowired
-    private Environment environment;
+    @Value("${CLOUDINARY_CLOUD_NAME}")
+    private String cloudName;
+
+    @Value("${CLOUDINARY_API_KEY}")
+    private String apiKey;
+
+    @Value("${CLOUDINARY_API_SECRET}")
+    private String apiSecret;
 
     @Bean
     public Cloudinary cloudinaryConfig() {
-        Map cloudinaryConfig = Map.of(
-                "cloud_name", Objects.requireNonNull(environment.getProperty("CLOUDINARY_CLOUD_NAME")),
-                "api_key", Objects.requireNonNull(environment.getProperty("CLOUDINARY_API_KEY")),
-                "api_secret", Objects.requireNonNull(environment.getProperty("CLOUDINARY_API_SECRET")),
+        Map<String, Object> cloudinaryConfig = Map.of(
+                "cloud_name", cloudName,
+                "api_key", apiKey,
+                "api_secret", apiSecret,
                 "secure", true);
 
         return new Cloudinary(cloudinaryConfig);
     }
-
 }
