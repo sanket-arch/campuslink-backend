@@ -46,8 +46,8 @@ public class User {
     private String email;
 
     @Lob
-    @Column(name = "profile_picture", columnDefinition = "BLOB")
-    private byte[] profilePicture;
+    @Column(name = "profile_picture_url")
+    private String profilePicture;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

@@ -1,5 +1,6 @@
 package com.api.campuslink.controllers;
 
+import com.api.campuslink.models.dto.UserDTO;
 import com.api.campuslink.models.entities.User;
 import com.api.campuslink.helpers.Result;
 import com.api.campuslink.services.UserService;
@@ -22,27 +23,14 @@ public class UserController {
     UserService userService;
 
     @PostMapping("/add")
-    public ResponseEntity<?> addUser(@RequestBody User req) {
-        User user = User.builder()
-                .firstName(req.getFirstName())
-                .lastName(req.getLastName())
-                .userName(req.getUserName())
-                .password(req.getPassword())
-                .email(req.getEmail())
-                .phoneNumber(req.getPhoneNumber())
-                .profilePicture(req.getProfilePicture())
-                .roles(req.getRoles())
-                .campus(req.getCampus())
-                .build();
+    public ResponseEntity<?> addUser(@RequestBody UserDTO req) {
 
-        Result<User> response = this.userService.insertUser(user);
+        Result<User> response = this.userService.insertUser(req);
 
         if (response.isSuccess()) {
-            return new ResponseEntity<>("User saved successfully with id " + response.getData().getUserId(),
-                    HttpStatus.OK);
+            return new ResponseEntity<>("User saved successfully with id " + response.getData().getUserName(), HttpStatus.OK);
         } else {
-            return new ResponseEntity<>("Unable to save due to " + response.getError(),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Unable to save due to " + response.getError(), response.getHttpStatus());
         }
 
     }
@@ -67,7 +55,7 @@ public class UserController {
     @GetMapping
     public ResponseEntity<?> getUserById(@RequestParam long userId) {
 
-        Result<User> response = this.userService.getUserbyId(userId);
+        Result<User> response = this.userService.getUserid(userId);
 
         if (!response.isSuccess()) {
             return new ResponseEntity<>(response.getError(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -116,5 +104,11 @@ public class UserController {
 
         return new ResponseEntity<>("users with ids " + ids + " removed succesfully", HttpStatus.OK);
 
+    }
+
+    @GetMapping("/exists")
+    public ResponseEntity<Boolean> checkUsernameExists(@RequestParam String username) {
+        Result<Boolean> isExist = userService.checkUserExistByUserName(username);
+        return new ResponseEntity<>(isExist.getData(), HttpStatus.OK);
     }
 }

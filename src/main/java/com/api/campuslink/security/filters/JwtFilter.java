@@ -2,7 +2,7 @@ package com.api.campuslink.security.filters;
 
 import com.api.campuslink.services.security.JwtService;
 import com.api.campuslink.services.security.UserDetailsServiceImpl;
-import com.api.campuslink.utils.InvalidJwtException;
+import com.api.campuslink.exceptions.InvalidJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

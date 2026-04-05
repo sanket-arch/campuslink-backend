@@ -2,8 +2,10 @@ package com.api.campuslink.services;
 
 import com.api.campuslink.dao.CampusRepository;
 import com.api.campuslink.dao.RoleRepository;
-import com.api.campuslink.dao.UserRespository;
+import com.api.campuslink.dao.UserRepository;
+import com.api.campuslink.exceptions.InternalProcessingException;
 import com.api.campuslink.helpers.Result;
+import com.api.campuslink.models.dto.UserDTO;
 import com.api.campuslink.models.entities.Campus;
 import com.api.campuslink.models.entities.Role;
 import com.api.campuslink.models.entities.User;
@@ -14,10 +16,9 @@ import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -29,70 +30,58 @@ import java.util.stream.Collectors;
 public class UserService {
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
     @Autowired
-    UserRespository userRespository;
+    private UserRepository userRepository;
 
     @Autowired
-    RoleRepository roleRepository;
+   private RoleRepository roleRepository;
 
     @Autowired
-    CampusRepository campusRepository;
+    private CampusRepository campusRepository;
 
-    @Autowired
-    AuthenticationManager authenticationManager;
-
-    @Autowired
-    JwtService jwtService;
-
-    public Result<Object> verify(ObjectNode credentials) {
+    public Result<User> insertUser(UserDTO userDTO) {
         try {
-            log.info("Got request to verify the user");
-            String username = credentials.get("username").asText();
-            String password = credentials.get("password").asText();
+            log.info("Got request to insert userDTO with username: {}", userDTO.getUserName());
 
-            // Using authenticationManager from the SecurityConfig class
-            Authentication authentication =
-                    authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
-            if (!authentication.isAuthenticated()) {
-                log.debug("Unable to verify the user");
-                return Result.error("Unable to verify the user");
+            if (userDTO.getCampusId() == null || userDTO.getRoleIds() == null || userDTO.getRoleIds().isEmpty()) {
+                log.error("Campus ID or Role IDs are missing in the request");
+                return Result.error("Campus ID or Role IDs are missing in the request");
             }
-            log.info("User validated successfully");
 
-            log.info("Generating token");
-            String jwtToken = this.jwtService.generateToken(username);
-            log.info("Token generated successfully");
+            log.info("Getting user details from userDTO");
+            User user = getUserDetails(userDTO);
 
-            Map<String, String> responseMap = new HashMap<>();
-            responseMap.put("Token", jwtToken);
-            responseMap.put("Validity", "30 min");
-
-            return Result.success(responseMap);
-        } catch (Exception e) {
-            log.info("Unable to verify the user");
-            log.info(e.getMessage());
-            return Result.error(e.getMessage());
-        }
-
-    }
-
-    public Result<User> insertUser(User user) {
-        try {
-            Result<User> result = this.getUserOtherDetail(user);
-            if (!result.isSuccess()) {
-                return result;
+            if (user == null) {
+                log.error("Invalid user details provided");
+                return Result.error("Invalid user details provided");
             }
-            user = result.getData();
-            user.setPassword(encoder.encode(user.getPassword()));
-            User savedUser = userRespository.save(user);
-            return Result.success(savedUser);
-        } catch (ConstraintViolationException e) {
-            String errorMsg = e.getConstraintViolations().stream()
-                    .map(ConstraintViolation::getMessage)
-                    .collect(Collectors.joining(", "));
-            return Result.error(errorMsg);
-        } catch (Exception e) {
+
+            log.info("User details obtained successfully");
+            User savedUser = userRepository.save(user);
+
+            log.info("User saved successfully with ID: {}", savedUser.getUserId());
+
+            return Result.success(user);
+        } catch (DataIntegrityViolationException | ConstraintViolationException e) {
+            log.info("Error while inserting user: {}", e.getMessage());
+            String errorMsg;
+            if (e instanceof ConstraintViolationException) {
+                errorMsg = ((ConstraintViolationException) e).getConstraintViolations().stream()
+                        .map(ConstraintViolation::getMessage)
+                        .collect(Collectors.joining(", "));
+            } else {
+                String message = e.getMessage();
+                if (message != null && message.contains("Duplicate entry") && message.contains("user_name")) {
+                    errorMsg = "Username already exists.";
+                } else if (message != null && message.contains("Duplicate entry") && message.contains("email")) {
+                    errorMsg = "Email already exists.";
+                } else {
+                    errorMsg = "Database integrity error: " + message;
+                }
+            }
+            return Result.error(errorMsg, HttpStatus.BAD_REQUEST);
+        } catch (InternalProcessingException e) {
             e.printStackTrace();
-            return Result.error(e.getMessage());
+            return Result.error(e.getMessage(), e.getResponseStatus());
         }
     }
 
@@ -100,7 +89,7 @@ public class UserService {
         try {
             List<User> userList = new ArrayList<User>();
             Sort sort = ascending ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-            userList = userRespository.findAll(sort);
+            userList = userRepository.findAll(sort);
             return Result.success(userList);
         } catch (Exception e) {
             e.printStackTrace();
@@ -109,9 +98,9 @@ public class UserService {
 
     }
 
-    public Result<User> getUserbyId(long userId) {
+    public Result<User> getUserid(long userId) {
         try {
-            Optional<User> userOptional = this.userRespository.findById(userId);
+            Optional<User> userOptional = this.userRepository.findById(userId);
             return userOptional.map(Result::success).orElseGet(() -> Result.success(null));
         } catch (Exception e) {
             e.printStackTrace();
@@ -124,13 +113,13 @@ public class UserService {
         try {
             long id = user.getUserId();
 
-            if (!this.userRespository.existsById(id)) {
+            if (!this.userRepository.existsById(id)) {
                 return Result.error("The user with given id " + id + " does not exist.");
             }
-            User existingUser = this.userRespository.findById(id).get();
+            User existingUser = this.userRepository.findById(id).get();
             user = this.getUserDetailsToUpdate(user,existingUser);
 
-            User updatedUser = this.userRespository.save(user);
+            User updatedUser = this.userRepository.save(user);
             return Result.success(updatedUser);
 
         } catch (Exception e) {
@@ -162,11 +151,11 @@ public class UserService {
 
     public Result<User> deleteUserById(long id) {
         try {
-            if (!userRespository.existsById(id)) {
+            if (!userRepository.existsById(id)) {
                 throw new Exception("User with " + id + " does not exists");
             }
 
-            userRespository.deleteById(id);
+            userRepository.deleteById(id);
             return Result.success(null);
 
         } catch (Exception e) {
@@ -177,12 +166,54 @@ public class UserService {
 
     public Result<User> deleteUsers(List<Long> ids) {
         try {
-            this.userRespository.deleteAllById(ids);
+            this.userRepository.deleteAllById(ids);
             return Result.success(null);
         } catch (Exception e) {
             e.printStackTrace();
             return Result.error(e.getMessage());
         }
+    }
+    private User getUserDetails( @NotNull UserDTO userDTO) {
+        Set<Role> roleAssigned = new HashSet<>();
+        // Ids of role will be passed in payload
+        List<Integer> rolesIDs = userDTO.getRoleIds();
+        log.info("Roles assigned IDs are :  {}", rolesIDs.toString());
+        int campusID = userDTO.getCampusId();
+
+        for (Integer roleID : rolesIDs) {
+            if (!roleRepository.existsById(roleID)) {
+                log.error("Role with id {} does not exist", roleID);
+                 throw  new InternalProcessingException("Role with id " + roleID + " does not exist", HttpStatus.BAD_REQUEST);
+            }
+            Optional<Role> userRole = roleRepository.findById(roleID);
+            roleAssigned.add(userRole.orElse(null));
+        }
+
+        if (!campusRepository.existsById(campusID)) {
+            log.error("Campus with id {}does not exist", campusID);
+            throw new InternalProcessingException("Campus with id " + campusID + " does not exist", HttpStatus.BAD_REQUEST);
+        }
+
+        User user = buildUserFromDTO(userDTO);
+        user.setRoles(roleAssigned);
+        Campus campus = campusRepository.findById(campusID);
+        user.setCampus(campus);
+
+        return user;
+    }
+
+    protected User buildUserFromDTO(UserDTO userDTO) {
+        User user = User.builder()
+                .firstName(userDTO.getFirstName())
+                .lastName(userDTO.getLastName())
+                .userName(userDTO.getUserName())
+                .password(encoder.encode(userDTO.getPassword()))
+                .email(userDTO.getEmail())
+                .phoneNumber(userDTO.getPhoneNumber())
+                .profilePicture(userDTO.getProfilePictureURL())
+                .build();
+
+        return user;
     }
 
     protected Result<User> getUserOtherDetail(@NotNull User user) {
@@ -213,5 +244,21 @@ public class UserService {
         user.setCampus(campus);
 
         return Result.success(user);
+    }
+
+    public Result<Boolean> checkUserExistByUserName(String username) {
+        try {
+            log.info("Checking if user with username {} exists", username);
+            User user = userRepository.findByUserName(username);
+            if (user == null) {
+                log.info("User with username {} does not exist", username);
+                return Result.success(false);
+            }
+            log.info("User with username {} exists", username);
+            return Result.success(true);
+        } catch (Exception e) {
+            log.error("Error while checking user existence: {}", e.getMessage());
+            return Result.error(e.getMessage());
+        }
     }
 }

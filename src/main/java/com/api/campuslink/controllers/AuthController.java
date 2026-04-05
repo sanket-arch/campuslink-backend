@@ -1,18 +1,21 @@
 package com.api.campuslink.controllers;
 
 import com.api.campuslink.helpers.Result;
+import com.api.campuslink.services.AuthService;
 import com.api.campuslink.services.UserService;
 import com.api.campuslink.services.security.JwtService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Cookie;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -24,16 +27,32 @@ public class AuthController {
     @Autowired
     JwtService jwtService;
 
+    @Autowired
+    private AuthService authService;
+
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody ObjectNode req) {
+    public ResponseEntity<?> login(@RequestBody ObjectNode req, HttpServletResponse response) {
         log.info("Got request for logging user in");
-        Result<Object> result = this.userService.verify(req);
+        Result<Object> result = this.authService.verify(req);
 
         if (!result.isSuccess()) {
             log.debug("Unable to verify the user");
             return new ResponseEntity<>(result.getError(), HttpStatus.UNAUTHORIZED);
         }
         log.info("User verified successfully");
+        // Set refresh_token cookie only with the token value
+        if (result.getData() instanceof Map) {
+            Map<?, ?> dataMap = (Map<?, ?>) result.getData();
+            Object refreshTokenObj = dataMap.get("refresh_token");
+            if (refreshTokenObj != null) {
+                Cookie cookie = new Cookie("backend_refresh_token", refreshTokenObj.toString());
+                cookie.setHttpOnly(true);
+                cookie.setPath("/");
+                cookie.setSecure(false);
+                cookie.setMaxAge(7 * 24 * 60 * 60); // 1 week
+                response.addCookie(cookie);
+            }
+        }
         return ResponseEntity.ok(result.getData());
     }
 
@@ -51,4 +70,62 @@ public class AuthController {
         log.info("Failed to log out user");
         return new ResponseEntity<>("Unable to log out user", HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @GetMapping("/validate")
+    public ResponseEntity<?> validateToken(HttpServletRequest request) {
+        log.info("Got request to validate the token");
+        String token = this.jwtService.getTokenFromRequest(request);
+        Result<Object> result = this.authService.isTokenValid(token);
+        if(!result.isSuccess()){
+            return new ResponseEntity<>(result.getError(), HttpStatus.UNAUTHORIZED);
+        }
+        return new ResponseEntity<>(result.getData(),HttpStatus.OK);
+    }
+
+    @GetMapping("/authenticate")
+    public ResponseEntity<?> authenticate(HttpServletResponse response, @RequestParam String username, @RequestParam String password, @RequestParam String successUrl, @RequestParam String failureUrl) {
+        log.info("Got request to authenticate the user");
+        Result<Object> result = this.authService.authenticate(username, password, successUrl, failureUrl);
+        Cookie cookie = null;
+        if (!result.isSuccess()) {
+            log.debug("Unable to verify the user");
+            return ResponseEntity.status(HttpStatus.FOUND) // 302 redirect;
+                    .header("Location", failureUrl)
+                    .build();
+        }
+        log.info("User verified successfully");
+        if (result.getData() instanceof Map) {
+            Map<?, ?> dataMap = (Map<?, ?>) result.getData();
+            Object refreshTokenObj = dataMap.get("refresh_token");
+            if (refreshTokenObj != null) {
+                cookie = new Cookie("backend_refresh_token", refreshTokenObj.toString());
+                cookie.setHttpOnly(true);
+                cookie.setPath("/");
+                cookie.setSecure(false);
+                cookie.setMaxAge(7 * 24 * 60 * 60); // 1 week
+                response.addCookie(cookie);
+            }
+        }
+
+        return ResponseEntity.status(HttpStatus.FOUND) // 302 redirect
+                .header("Set-Cookie", cookie.toString())
+                .header("Location", successUrl)
+                .build();
+    }
+
+    @GetMapping("/redirect")
+    public ResponseEntity<?> redirect(@RequestParam String url) {
+        ResponseCookie cookie = ResponseCookie.from("jwt", "something")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(3600)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.FOUND) // 302 redirect
+                .header("Set-Cookie", cookie.toString())
+                .header("Location", url)
+                .build();
+    }
+ 
 }
